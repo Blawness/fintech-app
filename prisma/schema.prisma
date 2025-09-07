@@ -1,0 +1,73 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Relations
+  progress     UserProgress[]
+  
+  @@map("users")
+}
+
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  content     String   @db.Text
+  day         Int      @unique // Day number (1, 2, 3, etc.)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  quiz        Quiz?
+  progress    UserProgress[]
+  
+  @@map("lessons")
+}
+
+model Quiz {
+  id        String   @id @default(cuid())
+  lessonId  String   @unique
+  question  String
+  options   Json     // Array of options
+  answer    Int      // Index of correct answer (0, 1, 2, 3)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@map("quizzes")
+}
+
+model UserProgress {
+  id          String   @id @default(cuid())
+  userId      String
+  lessonId    String
+  quizScore   Int?     // Score from 0-100
+  streak      Int      @default(0) // Current streak
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson      Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@map("user_progress")
+}
