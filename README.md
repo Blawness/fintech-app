@@ -165,5 +165,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Kontak
 
-- Email: your-email@example.com
-- Project Link: [https://github.com/yourusername/fintech-app](https://github.com/yourusername/fintech-app)
+- Email: yudhahafiz@gmail.com
+- Project Link: [(https://github.com/Blawness/fintech-app)](https://github.com/Blawness/fintech-app)
