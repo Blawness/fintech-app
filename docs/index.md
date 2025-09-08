@@ -163,3 +163,4 @@ docs/
 - [ ] Follow [Styling](./styling.md) for UI work
 
 **Happy coding! 🚀**
+

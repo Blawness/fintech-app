@@ -108,3 +108,4 @@ Lesson (1) ←→ (1) Quiz
 - Progress calculations happen server-side
 - Session data cached in JWT tokens
 - Database connections pooled automatically
+

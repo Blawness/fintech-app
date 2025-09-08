@@ -223,3 +223,4 @@ export const prisma = new PrismaClient({
 - Prisma docs: https://www.prisma.io/docs
 - NextAuth docs: https://next-auth.js.org
 - Tailwind docs: https://tailwindcss.com/docs
+

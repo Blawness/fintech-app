@@ -148,3 +148,4 @@ await prisma.userProgress.upsert({
 - **NextAuth**: https://next-auth.js.org
 - **Tailwind**: https://tailwindcss.com/docs
 - **shadcn/ui**: https://ui.shadcn.com
+
