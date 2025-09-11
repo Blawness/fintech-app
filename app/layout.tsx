@@ -6,8 +6,8 @@ import { Providers } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'FinEdu - Belajar Keuangan',
-  description: 'Aplikasi micro-learning edukasi keuangan untuk masyarakat Indonesia',
+  title: 'Bibit - Investasi Mudah untuk Semua',
+  description: 'Platform investasi reksa dana dan obligasi dengan edukasi keuangan untuk masyarakat Indonesia',
 }
 
 export default function RootLayout({

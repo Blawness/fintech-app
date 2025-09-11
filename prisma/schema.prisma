@@ -15,11 +15,15 @@ model User {
   email        String   @unique
   passwordHash String
   name         String?
+  riskProfile  String?  // "KONSERVATIF", "MODERAT", "AGRESIF"
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   
   // Relations
   progress     UserProgress[]
+  transactions InvestmentTransaction[]
+  portfolio    Portfolio?
+  watchlists   Watchlist[]
   
   @@map("users")
 }
@@ -70,4 +74,100 @@ model UserProgress {
   
   @@unique([userId, lessonId])
   @@map("user_progress")
+}
+
+// Investment models
+model InvestmentProduct {
+  id            String   @id @default(cuid())
+  name          String
+  type          String   // "REKSADANA", "OBLIGASI", "SBN"
+  category      String   // "PASAR_UANG", "OBLIGASI", "CAMPURAN", "SAHAM"
+  riskLevel     String   // "KONSERVATIF", "MODERAT", "AGRESIF"
+  expectedReturn Float
+  minInvestment Float
+  currentPrice  Float
+  description   String   @db.Text
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  transactions InvestmentTransaction[]
+  watchlists   Watchlist[]
+  holdings     PortfolioHolding[]
+  
+  @@map("investment_products")
+}
+
+model InvestmentTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  productId   String
+  type        String   // "BUY", "SELL"
+  amount      Float
+  units       Float
+  price       Float
+  totalValue  Float
+  status      String   // "PENDING", "COMPLETED", "CANCELLED"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     InvestmentProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("investment_transactions")
+}
+
+model Portfolio {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  totalValue      Float    @default(0)
+  totalGain       Float    @default(0)
+  totalGainPercent Float   @default(0)
+  riskProfile     String   // "KONSERVATIF", "MODERAT", "AGRESIF"
+  rdnBalance      Float    @default(0)
+  tradingBalance  Float    @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  holdings        PortfolioHolding[]
+  
+  @@map("portfolios")
+}
+
+model PortfolioHolding {
+  id            String   @id @default(cuid())
+  portfolioId   String
+  productId     String
+  units         Float
+  averagePrice  Float
+  currentValue  Float
+  gain          Float
+  gainPercent   Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  product       InvestmentProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([portfolioId, productId])
+  @@map("portfolio_holdings")
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   InvestmentProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, productId])
+  @@map("watchlists")
 }

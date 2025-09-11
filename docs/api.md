@@ -58,6 +58,131 @@ Get user's learning statistics.
 }
 ```
 
+## 💰 **Investment APIs**
+
+### `GET /api/products`
+Get all active investment products.
+```typescript
+// Response
+[
+  {
+    "id": "string",
+    "name": "Reksa Dana Pasar Uang Syariah",
+    "type": "REKSADANA",
+    "category": "PASAR_UANG",
+    "riskLevel": "KONSERVATIF",
+    "expectedReturn": 4.5,
+    "minInvestment": 10000,
+    "currentPrice": 1000,
+    "description": "string",
+    "isActive": true
+  }
+]
+```
+
+### `GET /api/portfolio/[userId]`
+Get user portfolio with holdings and asset allocation.
+```typescript
+// Response
+{
+  "portfolio": {
+    "totalValue": 1000000,
+    "totalGain": 50000,
+    "totalGainPercent": 5.0,
+    "riskProfile": "KONSERVATIF",
+    "rdnBalance": 500000,
+    "tradingBalance": 0,
+    "assetAllocation": {
+      "moneyMarket": 30.0,
+      "bonds": 40.0,
+      "stocks": 20.0,
+      "mixed": 10.0,
+      "cash": 0.0
+    }
+  },
+  "holdings": [/* PortfolioHolding[] */]
+}
+```
+
+### `POST /api/transactions/[userId]`
+Create new investment transaction.
+```typescript
+// Request
+{
+  "productId": "string",
+  "type": "BUY",
+  "amount": 100000,
+  "units": 100,
+  "price": 1000
+}
+
+// Response
+{
+  "id": "string",
+  "status": "PENDING",
+  "totalValue": 100000
+}
+```
+
+### `GET /api/transactions/[userId]`
+Get user transactions with optional filtering.
+```typescript
+// Query params: ?type=order&status=PENDING
+// Response
+[
+  {
+    "id": "string",
+    "type": "BUY",
+    "amount": 100000,
+    "units": 100,
+    "price": 1000,
+    "status": "COMPLETED",
+    "product": {
+      "name": "Reksa Dana Pasar Uang",
+      "type": "REKSADANA"
+    }
+  }
+]
+```
+
+### `GET /api/watchlist/[userId]`
+Get user watchlist.
+```typescript
+// Response
+[
+  {
+    "id": "string",
+    "productId": "string",
+    "product": {
+      "name": "Reksa Dana Saham",
+      "currentPrice": 2500
+    }
+  }
+]
+```
+
+### `POST /api/watchlist/[userId]`
+Add product to watchlist.
+```typescript
+// Request
+{
+  "productId": "string"
+}
+```
+
+### `GET /api/profile/[userId]`
+Get user profile information.
+```typescript
+// Response
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "riskProfile": "KONSERVATIF",
+  "rdnBalance": 1000000,
+  "tradingBalance": 0
+}
+```
+
 ## 📚 **Lesson APIs**
 
 ### `GET /api/lessons/today`
@@ -91,14 +216,26 @@ All APIs except signup require authentication via NextAuth.js session.
 ```
 
 ## 🔄 **Data Flow**
+
+### **Investment Flow**
 1. User logs in → Session created
-2. Dashboard loads → Calls `/api/progress/[userId]`
-3. Lesson page → Calls `/api/lessons/today`
-4. Quiz submission → Calls `/api/progress/save`
-5. Progress updates → Triggers streak calculation
+2. Dashboard loads → Calls `/api/portfolio/[userId]` & `/api/products`
+3. User browses products → Calls `/api/products`
+4. User invests → Calls `/api/transactions/[userId]`
+5. Portfolio updates → Real-time calculation
+6. User views history → Calls `/api/transactions/[userId]`
+
+### **Educational Flow**
+1. User logs in → Session created
+2. Lesson page → Calls `/api/lessons/today`
+3. Quiz submission → Calls `/api/progress/save`
+4. Progress updates → Triggers streak calculation
 
 ## 🗄️ **Database Relations**
 ```
+User (1) ←→ (1) Portfolio (1) ←→ (N) PortfolioHolding (N) → (1) InvestmentProduct
+User (1) ←→ (N) InvestmentTransaction (N) → (1) InvestmentProduct
+User (1) ←→ (N) Watchlist (N) → (1) InvestmentProduct
 User (1) ←→ (N) UserProgress (N) → (1) Lesson
 Lesson (1) ←→ (1) Quiz
 ```

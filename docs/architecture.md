@@ -5,15 +5,22 @@
 ### **Application Layers**
 ```
 ┌─────────────────┐
-│   Next.js App   │  ← Frontend (React)
+│   Next.js App   │  ← Frontend (React) - Bibit-style UI
 ├─────────────────┤
-│   API Routes    │  ← Backend (Node.js)
+│   API Routes    │  ← Backend (Node.js) - Investment APIs
 ├─────────────────┤
 │     Prisma      │  ← ORM & Database
 ├─────────────────┤
 │     MySQL       │  ← Database
 └─────────────────┘
 ```
+
+### **Investment Platform Features**
+- **Portfolio Management**: Real-time tracking dengan alokasi aset
+- **Dummy Trading**: Simulasi investasi reksa dana & obligasi
+- **Watchlist**: Monitoring produk investasi favorit
+- **Transaction History**: Riwayat transaksi dengan status tracking
+- **Educational Content**: Micro-learning keuangan
 
 ### **Key Technologies**
 - **Frontend**: Next.js 15.3.3 (App Router)
@@ -26,13 +33,14 @@
 
 ### **User Journey**
 ```
-1. User visits / → Dashboard
+1. User visits / → Redirect to /dashboard
 2. Auth check → Redirect to /auth/signin if needed
-3. Dashboard loads → API call to /api/progress/[userId]
-4. User clicks lesson → Navigate to /lesson
-5. Lesson loads → API call to /api/lessons/today
-6. Quiz submission → API call to /api/progress/save
-7. Progress updates → Return to dashboard
+3. Dashboard loads → API calls to portfolio & products
+4. User browses products → Navigate to /explore
+5. User invests → API call to /api/transactions
+6. Portfolio updates → Real-time calculation
+7. User views history → Navigate to /transactions
+8. Educational content → Navigate to /lesson (optional)
 ```
 
 ### **Authentication Flow**
@@ -53,45 +61,86 @@ users (
   email: String (Unique)
   passwordHash: String
   name: String?
+  riskProfile: String? (KONSERVATIF, MODERAT, AGRESIF)
   createdAt: DateTime
   updatedAt: DateTime
 )
 
-lessons (
+portfolios (
   id: String (CUID, Primary Key)
-  title: String
-  content: Text
-  day: Int (Unique)
+  userId: String (Foreign Key → users.id, Unique)
+  totalValue: Float (Default: 0)
+  totalGain: Float (Default: 0)
+  totalGainPercent: Float (Default: 0)
+  riskProfile: String
+  rdnBalance: Float (Default: 0)
+  tradingBalance: Float (Default: 0)
   createdAt: DateTime
   updatedAt: DateTime
 )
 
-quizzes (
+investment_products (
   id: String (CUID, Primary Key)
-  lessonId: String (Foreign Key → lessons.id)
-  question: String
-  options: Json (Array of strings)
-  answer: Int (Index of correct option)
+  name: String
+  type: String (REKSADANA, OBLIGASI, SBN)
+  category: String (PASAR_UANG, OBLIGASI, CAMPURAN, SAHAM)
+  riskLevel: String (KONSERVATIF, MODERAT, AGRESIF)
+  expectedReturn: Float
+  minInvestment: Float
+  currentPrice: Float
+  description: Text
+  isActive: Boolean (Default: true)
   createdAt: DateTime
   updatedAt: DateTime
 )
 
-user_progress (
+investment_transactions (
   id: String (CUID, Primary Key)
   userId: String (Foreign Key → users.id)
-  lessonId: String (Foreign Key → lessons.id)
-  quizScore: Int? (0-100)
-  streak: Int (Default: 0)
-  completedAt: DateTime
+  productId: String (Foreign Key → investment_products.id)
+  type: String (BUY, SELL)
+  amount: Float
+  units: Float
+  price: Float
+  totalValue: Float
+  status: String (PENDING, COMPLETED, CANCELLED)
   createdAt: DateTime
   updatedAt: DateTime
-
-  Unique: (userId, lessonId)
 )
+
+portfolio_holdings (
+  id: String (CUID, Primary Key)
+  portfolioId: String (Foreign Key → portfolios.id)
+  productId: String (Foreign Key → investment_products.id)
+  units: Float
+  averagePrice: Float
+  currentValue: Float
+  gain: Float
+  gainPercent: Float
+  createdAt: DateTime
+  updatedAt: DateTime
+  
+  Unique: (portfolioId, productId)
+)
+
+watchlists (
+  id: String (CUID, Primary Key)
+  userId: String (Foreign Key → users.id)
+  productId: String (Foreign Key → investment_products.id)
+  createdAt: DateTime
+  
+  Unique: (userId, productId)
+)
+
+-- Educational tables (existing)
+lessons, quizzes, user_progress
 ```
 
 ### **Relationships**
 ```
+User (1) ←→ (1) Portfolio (1) ←→ (N) PortfolioHolding (N) → (1) InvestmentProduct
+User (1) ←→ (N) InvestmentTransaction (N) → (1) InvestmentProduct
+User (1) ←→ (N) Watchlist (N) → (1) InvestmentProduct
 User (1) ←→ (N) UserProgress (N) → (1) Lesson
 Lesson (1) ←→ (1) Quiz
 ```
@@ -104,6 +153,16 @@ api/
 ├── auth/
 │   ├── [...nextauth]/route.ts    # NextAuth handlers
 │   └── signup/route.ts           # User registration
+├── products/
+│   └── route.ts                  # CRUD investment products
+├── portfolio/
+│   └── [userId]/route.ts         # Portfolio management
+├── transactions/
+│   └── [userId]/route.ts         # Transaction management
+├── watchlist/
+│   └── [userId]/route.ts         # Watchlist management
+├── profile/
+│   └── [userId]/route.ts         # User profile management
 ├── progress/
 │   ├── save/route.ts             # Save progress
 │   └── [userId]/route.ts         # Get user progress
@@ -120,8 +179,13 @@ Response ← JSON Serialization ← Data Processing ← Query Result
 ## 🎯 **Component Architecture**
 
 ### **Page Components**
-- `app/page.tsx` - Dashboard with progress overview
-- `app/lesson/page.tsx` - Lesson content + quiz interface
+- `app/page.tsx` - Redirect to dashboard
+- `app/dashboard/page.tsx` - Main dashboard (Bibit-style)
+- `app/portfolio/page.tsx` - Portfolio overview & asset allocation
+- `app/explore/page.tsx` - Browse investment products & watchlist
+- `app/transactions/page.tsx` - Transaction history & order management
+- `app/profile/page.tsx` - User profile & settings
+- `app/lesson/page.tsx` - Educational content + quiz interface
 - `app/auth/signin/page.tsx` - Login form
 - `app/auth/signup/page.tsx` - Registration form
 
@@ -132,6 +196,10 @@ Response ← JSON Serialization ← Data Processing ← Query Result
 - `RadioGroup` - Quiz answer selection
 - `Input` - Form inputs
 - `Label` - Form labels
+- `Badge` - Status indicators
+- `InvestmentCard` - Investment product display
+- `PortfolioSummary` - Portfolio overview component
+- `TransactionHistory` - Transaction list component
 
 ### **Utility Libraries** (`lib/`)
 - `auth.ts` - NextAuth configuration

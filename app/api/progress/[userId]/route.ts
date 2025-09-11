@@ -5,17 +5,18 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id || session.user.id !== params.userId) {
+    const { userId } = await params
+
+    if (!session?.user?.id || session.user.id !== userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const progress = await prisma.userProgress.findMany({
-      where: { userId: params.userId },
+      where: { userId: userId },
       include: {
         lesson: {
           select: {

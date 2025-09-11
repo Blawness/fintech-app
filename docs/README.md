@@ -1,7 +1,7 @@
-# FinEdu - Financial Education Micro-Learning App
+# Bibit - Investasi Mudah untuk Semua
 
 ## 🎯 **Core Purpose**
-Micro-learning platform for Indonesian financial literacy education. Duolingo-style interface for financial knowledge acquisition.
+Platform investasi reksa dana dan obligasi dengan edukasi keuangan untuk masyarakat Indonesia. Kombinasi antara broker dummy dan sistem pembelajaran keuangan yang interaktif.
 
 ## 🚀 **Quick Start**
 ```bash
@@ -21,19 +21,36 @@ npm run dev
 
 ### **Key Features**
 - ✅ User authentication (email/password)
+- ✅ Portfolio management dengan tracking real-time
+- ✅ Investasi dummy reksa dana dan obligasi
+- ✅ Watchlist untuk monitoring produk investasi
+- ✅ Sistem transaksi dengan status tracking
 - ✅ Daily financial lessons in Indonesian
 - ✅ Interactive quizzes with progress tracking
 - ✅ Streak counter and gamification
-- ✅ Responsive design
+- ✅ Responsive design dengan UI menyerupai Bibit
 
 ## 📁 **Project Structure**
 ```
 ├── app/                    # Next.js App Router
 │   ├── api/               # API routes
+│   │   ├── products/      # Investment products API
+│   │   ├── portfolio/     # Portfolio management API
+│   │   ├── transactions/  # Transaction API
+│   │   ├── watchlist/     # Watchlist API
+│   │   └── profile/       # User profile API
 │   ├── auth/              # Authentication pages
-│   ├── lesson/            # Lesson page
+│   ├── dashboard/         # Main dashboard (Bibit-style)
+│   ├── portfolio/         # Portfolio page
+│   ├── explore/           # Explore investment products
+│   ├── transactions/      # Transaction history
+│   ├── profile/           # User profile
+│   ├── lesson/            # Educational content
 │   └── globals.css        # Global styles
 ├── components/ui/         # shadcn/ui components
+│   ├── investment-card.tsx    # Investment product card
+│   ├── portfolio-summary.tsx  # Portfolio overview
+│   └── transaction-history.tsx # Transaction list
 ├── lib/                   # Utility libraries
 ├── prisma/                # Database schema & seed
 └── docs/                  # Documentation
@@ -47,10 +64,13 @@ npm run dev
 - Hot reload enabled
 
 ## 📚 **Key Components**
-- `Dashboard`: User progress overview
-- `Lesson`: Daily content + quiz
+- `Dashboard`: Portfolio overview dengan UI menyerupai Bibit
+- `Portfolio`: Detail portfolio dan alokasi aset
+- `Explore`: Browse produk investasi dan watchlist
+- `Transactions`: Riwayat transaksi dan order management
+- `Profile`: User profile dan settings
+- `Lesson`: Daily content + quiz (edukasi keuangan)
 - `Auth`: Login/register forms
-- `Progress`: User tracking system
 
 ## 🎨 **UI System**
 - shadcn/ui component library
@@ -65,8 +85,13 @@ npm run dev
 - Protected routes
 
 ## 📊 **Database Schema**
-- `User`: Authentication data
-- `Lesson`: Content storage
+- `User`: Authentication data + risk profile
+- `Portfolio`: User portfolio dengan total value & gain
+- `PortfolioHolding`: Detail holding per produk
+- `InvestmentProduct`: Produk investasi (reksa dana, obligasi, SBN)
+- `InvestmentTransaction`: Transaksi buy/sell
+- `Watchlist`: Produk yang di-watchlist user
+- `Lesson`: Educational content storage
 - `Quiz`: Question/answer data
 - `UserProgress`: Learning tracking
 
