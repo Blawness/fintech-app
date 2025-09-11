@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
     const { searchParams } = new URL(request.url)
     const type = searchParams.get('type') // 'order' or 'history'
     const status = searchParams.get('status') // 'PENDING', 'COMPLETED', 'CANCELLED'
@@ -45,10 +45,10 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
     const body = await request.json()
     const { productId, type, amount, units, price } = body
 
@@ -163,16 +163,16 @@ async function updatePortfolioAfterBuy(
     where: { portfolioId: portfolio.id }
   })
 
-  const totalValue = holdings.reduce((sum, holding) => sum + holding.currentValue, 0)
-  const totalGain = holdings.reduce((sum, holding) => sum + holding.gain, 0)
-  const totalGainPercent = totalValue > 0 ? (totalGain / totalValue) * 100 : 0
+  const portfolioTotalValue = holdings.reduce((sum, holding) => sum + holding.currentValue, 0)
+  const portfolioTotalGain = holdings.reduce((sum, holding) => sum + holding.gain, 0)
+  const portfolioTotalGainPercent = portfolioTotalValue > 0 ? (portfolioTotalGain / portfolioTotalValue) * 100 : 0
 
   await prisma.portfolio.update({
     where: { userId },
     data: {
-      totalValue,
-      totalGain,
-      totalGainPercent
+      totalValue: portfolioTotalValue,
+      totalGain: portfolioTotalGain,
+      totalGainPercent: portfolioTotalGainPercent
     }
   })
 }

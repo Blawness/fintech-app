@@ -79,7 +79,7 @@ model UserProgress {
 // Investment models
 model InvestmentProduct {
   id            String   @id @default(cuid())
-  name          String
+  name          String   @unique
   type          String   // "REKSADANA", "OBLIGASI", "SBN"
   category      String   // "PASAR_UANG", "OBLIGASI", "CAMPURAN", "SAHAM"
   riskLevel     String   // "KONSERVATIF", "MODERAT", "AGRESIF"
