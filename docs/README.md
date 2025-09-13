@@ -17,17 +17,24 @@ Sistem Market Simulator yang secara otomatis mengupdate harga produk investasi b
 
 ### **Quick Start**
 
-1. **Start Market Simulator**:
+1. **Start Development Server**:
    ```bash
-   # Market simulator akan otomatis start di production
    npm run dev
    ```
 
-2. **Access Admin Panel**:
-   - Login sebagai admin
-   - Navigate ke `/admin/market`
-   - Start/Stop simulator
-   - View price history
+2. **Start Market Simulator**:
+   ```bash
+   # Method 1: Via Admin Panel (Recommended)
+   # - Login sebagai admin
+   # - Buka /admin/market
+   # - Klik "Start" button
+   
+   # Method 2: Via Script
+   npm run market:start
+   
+   # Method 3: Via API
+   curl -X POST http://localhost:3000/api/market/start
+   ```
 
 3. **Monitor Real-time**:
    - Portfolio values update otomatis

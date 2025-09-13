@@ -71,16 +71,25 @@ export default function MarketControlPage() {
   const controlMarket = async (action: string) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/market/control', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          action,
-          interval: action === 'start' ? interval : undefined
-        }),
-      })
+      let response
+      
+      if (action === 'start') {
+        response = await fetch('/api/market/start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ interval }),
+        })
+      } else {
+        response = await fetch('/api/market/control', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ action }),
+        })
+      }
       
       const data = await response.json()
       
@@ -272,7 +281,7 @@ export default function MarketControlPage() {
         </div>
 
         {/* Last Update Results */}
-        {lastUpdate.length > 0 && (
+        {lastUpdate && lastUpdate.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Last Market Update</CardTitle>
@@ -282,12 +291,12 @@ export default function MarketControlPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {lastUpdate.map((product) => (
+                {lastUpdate && lastUpdate.map((product) => (
                   <div key={product.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <h3 className="font-medium">{product.name}</h3>
                       <div className="text-sm text-gray-600">
-                        Rp {product.oldPrice.toLocaleString('id-ID')} → Rp {product.newPrice.toLocaleString('id-ID')}
+                        Rp {product.oldPrice?.toLocaleString('id-ID') || '0'} → Rp {product.newPrice?.toLocaleString('id-ID') || '0'}
                       </div>
                     </div>
                     <div className="text-right">
@@ -300,13 +309,13 @@ export default function MarketControlPage() {
                           <TrendingDown className="h-4 w-4" />
                         )}
                         <span className="font-medium">
-                          {product.change >= 0 ? '+' : ''}{product.changePercent.toFixed(2)}%
+                          {product.change >= 0 ? '+' : ''}{product.changePercent?.toFixed(2) || '0.00'}%
                         </span>
                       </div>
                       <div className={`text-sm ${
                         product.change >= 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {product.change >= 0 ? '+' : ''}Rp {product.change.toLocaleString('id-ID')}
+                        {product.change >= 0 ? '+' : ''}Rp {product.change?.toLocaleString('id-ID') || '0'}
                       </div>
                     </div>
                   </div>
@@ -317,7 +326,7 @@ export default function MarketControlPage() {
         )}
 
         {/* Price History */}
-        {showHistory && (
+        {showHistory && priceHistory && Object.keys(priceHistory).length > 0 && (
           <Card className="mt-8">
             <CardHeader>
               <CardTitle>Price History (Last 24 Hours)</CardTitle>
@@ -327,7 +336,7 @@ export default function MarketControlPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                {Object.entries(priceHistory).map(([productId, productData]) => (
+                {priceHistory && Object.entries(priceHistory).map(([productId, productData]) => (
                   <div key={productId} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -338,18 +347,18 @@ export default function MarketControlPage() {
                         </div>
                       </div>
                       <Badge variant="outline">
-                        {productData.history.length} updates
+                        {productData.history?.length || 0} updates
                       </Badge>
                     </div>
                     <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {productData.history.slice(0, 10).map((record) => (
+                      {productData.history && productData.history.slice(0, 10).map((record) => (
                         <div key={record.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-100">
                           <div className="flex items-center gap-2">
                             <span className="text-gray-500">
                               {new Date(record.timestamp).toLocaleTimeString()}
                             </span>
                             <span className="font-mono">
-                              Rp {record.price.toLocaleString('id-ID')}
+                              Rp {record.price?.toLocaleString('id-ID') || '0'}
                             </span>
                           </div>
                           <div className={`flex items-center gap-1 ${
@@ -361,7 +370,7 @@ export default function MarketControlPage() {
                               <TrendingDown className="h-3 w-3" />
                             )}
                             <span>
-                              {record.change >= 0 ? '+' : ''}{record.changePercent.toFixed(2)}%
+                              {record.change >= 0 ? '+' : ''}{record.changePercent?.toFixed(2) || '0.00'}%
                             </span>
                           </div>
                         </div>
@@ -369,7 +378,7 @@ export default function MarketControlPage() {
                     </div>
                   </div>
                 ))}
-                {Object.keys(priceHistory).length === 0 && (
+                {(!priceHistory || Object.keys(priceHistory).length === 0) && (
                   <div className="text-center text-gray-500 py-8">
                     No price history available. Start the market simulator to see price changes.
                   </div>

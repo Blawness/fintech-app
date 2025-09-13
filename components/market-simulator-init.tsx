@@ -4,19 +4,22 @@ import { useEffect } from 'react'
 
 export function MarketSimulatorInit() {
   useEffect(() => {
-    // Initialize market simulator on client side
-    // This ensures it only runs in the browser
-    if (typeof window !== 'undefined') {
-      // Import and start market simulator
-      import('@/lib/market-simulator').then(({ marketSimulator }) => {
-        if (!marketSimulator.isSimulationRunning()) {
-          console.log('Starting market simulator...')
-          marketSimulator.start(10000) // 10 seconds interval
-        }
-      }).catch(error => {
-        console.error('Failed to start market simulator:', error)
-      })
+    // Market simulator should run on server-side only
+    // This component is just a placeholder for client-side initialization
+    // The actual market simulator will be started via API calls
+    
+    // Check if market simulator is running
+    const checkMarketStatus = async () => {
+      try {
+        const response = await fetch('/api/market/control')
+        const data = await response.json()
+        console.log('Market simulator status:', data.isRunning ? 'Running' : 'Stopped')
+      } catch (error) {
+        console.log('Market simulator not accessible from client')
+      }
     }
+
+    checkMarketStatus()
   }, [])
 
   // This component doesn't render anything

@@ -20,15 +20,8 @@ import {
   ArrowUpRight
 } from 'lucide-react'
 import { BottomNavigation } from '@/components/ui/bottom-navigation'
+import { RealTimePortfolio } from '@/components/ui/real-time-portfolio'
 
-interface PortfolioData {
-  totalValue: number
-  totalGain: number
-  totalGainPercent: number
-  rdnBalance: number
-  tradingBalance: number
-  riskProfile: string
-}
 
 interface InvestmentProduct {
   id: string
@@ -45,10 +38,10 @@ interface InvestmentProduct {
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [portfolio, setPortfolio] = useState<PortfolioData | null>(null)
   const [products, setProducts] = useState<InvestmentProduct[]>([])
   const [loading, setLoading] = useState(true)
-  const [showValues, setShowValues] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -59,15 +52,19 @@ export default function DashboardPage() {
     }
 
     fetchDashboardData()
+    
+    // Set up real-time updates every 5 seconds
+    const interval = setInterval(() => {
+      fetchDashboardData(true)
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [session, status])
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (isBackgroundUpdate = false) => {
     try {
-      // Fetch portfolio data
-      const portfolioResponse = await fetch(`/api/portfolio/${session?.user?.id}`)
-      if (portfolioResponse.ok) {
-        const portfolioData = await portfolioResponse.json()
-        setPortfolio(portfolioData)
+      if (isBackgroundUpdate) {
+        setIsUpdating(true)
       }
 
       // Fetch investment products
@@ -76,10 +73,15 @@ export default function DashboardPage() {
         const productsData = await productsResponse.json()
         setProducts(productsData)
       }
+
+      setLastUpdate(new Date())
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
+      if (isBackgroundUpdate) {
+        setIsUpdating(false)
+      }
     }
   }
 
@@ -111,6 +113,14 @@ export default function DashboardPage() {
               <h1 className="text-2xl font-bold text-green-600">bibit</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="text-xs text-gray-500">
+                {lastUpdate && `Updated: ${lastUpdate.toLocaleTimeString()}`}
+                {isUpdating && (
+                  <span className="ml-2 text-green-600">
+                    <span className="animate-spin">⟳</span> Updating...
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
                   <span className="text-xs">🔔</span>
@@ -126,59 +136,17 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-4 py-6 pb-32">
         {/* Portfolio Summary */}
-        <Card className="mb-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-700 mb-2">Nilai Portofolio</h2>
-                <div className="flex items-center space-x-2">
-                  {showValues ? (
-                    <span className="text-2xl font-bold text-gray-900">
-                      Rp {portfolio?.totalValue?.toLocaleString('id-ID') || '0'}
-                    </span>
-                  ) : (
-                    <span className="text-2xl font-bold text-gray-900">••••••••</span>
-                  )}
-                  <button 
-                    onClick={() => setShowValues(!showValues)}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    {showValues ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <div className="flex items-center space-x-4 mt-2">
-                  <span className="text-sm text-gray-600">Keuntungan</span>
-                  {showValues ? (
-                    <span className="text-sm font-medium text-green-600">
-                      +Rp {portfolio?.totalGain?.toLocaleString('id-ID') || '0'} ({portfolio?.totalGainPercent?.toFixed(2) || '0'}%)
-                    </span>
-                  ) : (
-                    <span className="text-sm font-medium text-green-600">••••••</span>
-                  )}
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-sm text-gray-600">Imbal Hasil</span>
-                  <span className="text-sm font-medium text-gray-900">0.00%</span>
-                </div>
-                <div className="text-sm text-gray-600">Saldo RDN</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {showValues ? `Rp ${portfolio?.rdnBalance?.toLocaleString('id-ID') || '0'}` : '••••••'}
-                </div>
-                <div className="text-sm text-gray-600">Saldo Trading</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {showValues ? `Rp ${portfolio?.tradingBalance?.toLocaleString('id-ID') || '0'}` : '••••••'}
-                </div>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button className="bg-green-600 hover:bg-green-700">
-                Deposit
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="mb-6">
+          <RealTimePortfolio userId={session.user.id} />
+          <div className="flex justify-end mt-4">
+            <Button 
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => router.push('/profile')}
+            >
+              Deposit
+            </Button>
+          </div>
+        </div>
 
         {/* Quick Actions */}
         <div className="grid grid-cols-4 gap-4 mb-6">
@@ -191,24 +159,33 @@ export default function DashboardPage() {
             </div>
             <span className="text-sm text-gray-600">Portofolio</span>
           </button>
-          <div className="text-center">
+          <button 
+            onClick={() => router.push('/investment')}
+            className="text-center hover:bg-gray-50 p-2 rounded-lg transition-colors"
+          >
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
               <Calendar className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm text-gray-600">SIP</span>
-          </div>
-          <div className="text-center">
+            <span className="text-sm text-gray-600">Investasi</span>
+          </button>
+          <button 
+            onClick={() => router.push('/lesson')}
+            className="text-center hover:bg-gray-50 p-2 rounded-lg transition-colors"
+          >
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
               <Gift className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm text-gray-600">Referral</span>
-          </div>
-          <div className="text-center">
+            <span className="text-sm text-gray-600">Edukasi</span>
+          </button>
+          <button 
+            onClick={() => router.push('/explore')}
+            className="text-center hover:bg-gray-50 p-2 rounded-lg transition-colors"
+          >
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
               <Grid3X3 className="w-6 h-6 text-green-600" />
             </div>
-            <span className="text-sm text-gray-600">Lainnya</span>
-          </div>
+            <span className="text-sm text-gray-600">Explore</span>
+          </button>
         </div>
 
         {/* Investment Products */}
@@ -278,7 +255,10 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <Button className="bg-green-600 hover:bg-green-700">
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => router.push('/investment')}
+                >
                   Beli
                 </Button>
               </div>
@@ -295,7 +275,10 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Daftarkan perusahaan ke Bibit Bisnis untuk investasi semudah di Bibit pribadi kamu.
                 </p>
-                <Button className="bg-green-600 hover:bg-green-700">
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => window.open('https://bibit.id', '_blank')}
+                >
                   Pelajari lebih lanjut
                   <ArrowUpRight className="w-4 h-4 ml-2" />
                 </Button>

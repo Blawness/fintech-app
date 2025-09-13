@@ -206,11 +206,6 @@ export class MarketSimulator {
 // Global market simulator instance
 export const marketSimulator = MarketSimulator.getInstance()
 
-// Auto-start market simulator in production
-if (process.env.NODE_ENV === 'production') {
-  marketSimulator.start(10000) // 10 seconds
-}
-
 // Graceful shutdown
 process.on('SIGINT', () => {
   console.log('Shutting down market simulator...')

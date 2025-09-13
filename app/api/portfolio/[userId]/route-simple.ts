@@ -21,23 +21,6 @@ export async function GET(
     })
 
     if (!portfolio) {
-      // Check if user exists first
-      const user = await prisma.user.findUnique({
-        where: { id: userId }
-      })
-
-      if (!user) {
-        // Create a test user if it doesn't exist
-        await prisma.user.create({
-          data: {
-            id: userId,
-            email: `${userId}@test.com`,
-            name: `Test User ${userId}`,
-            role: 'USER'
-          }
-        })
-      }
-
       // Create portfolio if it doesn't exist
       portfolio = await prisma.portfolio.create({
         data: {
@@ -125,34 +108,6 @@ export async function GET(
         error: 'Failed to fetch portfolio',
         details: error.message
       },
-      { status: 500 }
-    )
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
-  try {
-    const { userId } = await params
-    const body = await request.json()
-    const { riskProfile, rdnBalance, tradingBalance } = body
-
-    const portfolio = await prisma.portfolio.update({
-      where: { userId },
-      data: {
-        riskProfile,
-        rdnBalance,
-        tradingBalance
-      }
-    })
-
-    return NextResponse.json(portfolio)
-  } catch (error) {
-    console.error('Error updating portfolio:', error)
-    return NextResponse.json(
-      { error: 'Failed to update portfolio' },
       { status: 500 }
     )
   }

@@ -133,15 +133,29 @@ CREATE TABLE price_history (
 );
 ```
 
-## 🔄 **Auto-Start Configuration**
+## 🔄 **Starting Market Simulator**
 
-Market simulator akan otomatis start di production environment:
+### **Method 1: Via Admin Panel (Recommended)**
+1. Login sebagai admin
+2. Buka `/admin/market`
+3. Klik tombol "Start"
+4. Set interval (default: 10 detik)
 
-```typescript
-// Auto-start in production
-if (process.env.NODE_ENV === 'production') {
-  marketSimulator.start(10000) // 10 seconds
-}
+### **Method 2: Via API**
+```bash
+# Start simulator
+curl -X POST http://localhost:3000/api/market/start \
+  -H "Content-Type: application/json" \
+  -d '{"interval": 10000}'
+```
+
+### **Method 3: Via Script**
+```bash
+# Start market simulator
+npm run market:start
+
+# Test market simulator
+npm run market:test
 ```
 
 ## 📱 **Frontend Integration**

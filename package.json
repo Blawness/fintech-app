@@ -9,7 +9,14 @@
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "market:start": "node scripts/start-market-simulator.js",
+    "market:test": "node scripts/test-market-simulator.js",
+    "admin:test": "node scripts/test-admin-market.js",
+    "dashboard:test": "node scripts/test-dashboard-sync.js",
+    "sync:test": "node scripts/test-real-time-sync.js",
+    "debug:portfolio": "node scripts/debug-portfolio.js",
+    "perf:test": "node scripts/measure-api-performance.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",

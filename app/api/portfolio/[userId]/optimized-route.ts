@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { createHash } from 'crypto'
 
 export async function GET(
   request: NextRequest,
@@ -109,50 +110,50 @@ export async function GET(
       assetAllocation.cash = Math.max(0, 100 - investedPercentage)
     }
 
-    return NextResponse.json({
+    const responseData = {
       ...portfolio,
       totalValue,
       totalGain,
       totalGainPercent,
       assetAllocation,
       monthlyStreak: 0,
-      holdings: updatedHoldings
+      holdings: updatedHoldings,
+      lastUpdated: new Date().toISOString()
+    }
+
+    // Generate ETag for caching
+    const dataString = JSON.stringify({
+      totalValue,
+      totalGain,
+      totalGainPercent,
+      rdnBalance: portfolio.rdnBalance,
+      tradingBalance: portfolio.tradingBalance,
+      holdingsCount: updatedHoldings.length
     })
+    const etag = createHash('md5').update(dataString).digest('hex')
+
+    // Check if client has cached version
+    const ifNoneMatch = request.headers.get('if-none-match')
+    if (ifNoneMatch === etag) {
+      return new NextResponse(null, { status: 304 })
+    }
+
+    // Return data with ETag
+    return NextResponse.json(responseData, {
+      headers: {
+        'ETag': etag,
+        'Cache-Control': 'private, max-age=30', // Cache for 30 seconds
+        'Last-Modified': new Date().toUTCString()
+      }
+    })
+
   } catch (error) {
     console.error('Error fetching portfolio:', error)
     return NextResponse.json(
       { 
         error: 'Failed to fetch portfolio',
-        details: error.message
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
-      { status: 500 }
-    )
-  }
-}
-
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
-) {
-  try {
-    const { userId } = await params
-    const body = await request.json()
-    const { riskProfile, rdnBalance, tradingBalance } = body
-
-    const portfolio = await prisma.portfolio.update({
-      where: { userId },
-      data: {
-        riskProfile,
-        rdnBalance,
-        tradingBalance
-      }
-    })
-
-    return NextResponse.json(portfolio)
-  } catch (error) {
-    console.error('Error updating portfolio:', error)
-    return NextResponse.json(
-      { error: 'Failed to update portfolio' },
       { status: 500 }
     )
   }
