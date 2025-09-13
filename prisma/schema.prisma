@@ -97,6 +97,7 @@ model InvestmentProduct {
   transactions InvestmentTransaction[]
   watchlists   Watchlist[]
   holdings     PortfolioHolding[]
+  priceHistory PriceHistory[]
   
   @@map("investment_products")
 }
@@ -172,4 +173,18 @@ model Watchlist {
   
   @@unique([userId, productId])
   @@map("watchlists")
+}
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  productId   String
+  price       Float
+  change      Float
+  changePercent Float
+  timestamp   DateTime @default(now())
+  
+  // Relations
+  product     InvestmentProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("price_history")
 }

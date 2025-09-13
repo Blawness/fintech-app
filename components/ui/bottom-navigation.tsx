@@ -12,24 +12,24 @@ export function BottomNavigation({ className = '' }: BottomNavigationProps) {
 
   const navItems = [
     {
-      path: '/dashboard',
+      path: '/',
       icon: '🏠',
       label: 'Home'
     },
     {
-      path: '/history',
-      icon: '🕐',
-      label: 'History'
+      path: '/lesson',
+      icon: '📚',
+      label: 'Pelajaran'
     },
     {
-      path: '/explore',
-      icon: '🔍',
-      label: 'Search'
+      path: '/investment',
+      icon: '💰',
+      label: 'Investasi'
     },
     {
-      path: '/transactions',
-      icon: '↔️',
-      label: 'Transaksi'
+      path: '/portfolio',
+      icon: '📊',
+      label: 'Portfolio'
     },
     {
       path: '/profile',
@@ -39,8 +39,8 @@ export function BottomNavigation({ className = '' }: BottomNavigationProps) {
   ]
 
   const isActive = (path: string) => {
-    if (path === '/dashboard') {
-      return pathname === '/dashboard' || pathname === '/'
+    if (path === '/') {
+      return pathname === '/'
     }
     return pathname === path
   }

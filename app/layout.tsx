@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import { RoleBasedNavigation } from '@/components/ui/role-based-navigation'
+import { MarketSimulatorInit } from '@/components/market-simulator-init'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -23,6 +24,7 @@ export default function RootLayout({
           <div className="min-h-screen bg-gray-50">
             {children}
             <RoleBasedNavigation />
+            <MarketSimulatorInit />
           </div>
         </Providers>
       </body>

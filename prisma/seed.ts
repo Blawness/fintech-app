@@ -18,6 +18,21 @@ async function main() {
     },
   })
 
+  // Create admin user
+  const adminHashedPassword = await bcrypt.hash('admin123', 12)
+  
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@fintech.com' },
+    update: {},
+    create: {
+      email: 'admin@fintech.com',
+      passwordHash: adminHashedPassword,
+      name: 'Admin Fintech',
+      role: 'ADMIN',
+      riskProfile: 'MODERAT',
+    },
+  })
+
   // Create portfolio for user
   await prisma.portfolio.upsert({
     where: { userId: user.id },

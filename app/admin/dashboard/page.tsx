@@ -110,6 +110,19 @@ export default async function AdminDashboard() {
             </a>
 
             <a
+              href="/admin/balance-injections"
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <div className="bg-green-100 rounded-lg p-3 mr-4">
+                <span className="text-2xl">💰</span>
+              </div>
+              <div>
+                <h3 className="font-medium text-gray-900">Injeksi Saldo</h3>
+                <p className="text-sm text-gray-600">Tambah saldo dan lihat riwayat injeksi</p>
+              </div>
+            </a>
+
+            <a
               href="/admin/analytics"
               className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >

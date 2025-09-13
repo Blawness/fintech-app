@@ -22,18 +22,18 @@ export function AdminBottomNavigation({ className = '' }: AdminBottomNavigationP
       label: 'Produk'
     },
     {
-      path: '/admin/transactions',
-      icon: '💳',
-      label: 'Transaksi'
-    },
-    {
       path: '/admin/users',
       icon: '👥',
       label: 'Users'
     },
     {
-      path: '/admin/analytics',
+      path: '/admin/market',
       icon: '📈',
+      label: 'Market'
+    },
+    {
+      path: '/admin/analytics',
+      icon: '📊',
       label: 'Analytics'
     }
   ]

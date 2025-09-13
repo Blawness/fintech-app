@@ -5,9 +5,11 @@
 ### **Application Layers**
 ```
 ┌─────────────────┐
-│   Next.js App   │  ← Frontend (React) - Bibit-style UI
+│   Next.js App   │  ← Frontend (React) - Bibit-style UI + Admin Panel
 ├─────────────────┤
-│   API Routes    │  ← Backend (Node.js) - Investment APIs
+│   API Routes    │  ← Backend (Node.js) - Investment APIs + Admin APIs
+├─────────────────┤
+│   Middleware    │  ← Route Protection & RBAC
 ├─────────────────┤
 │     Prisma      │  ← ORM & Database
 ├─────────────────┤
@@ -15,12 +17,22 @@
 └─────────────────┘
 ```
 
-### **Investment Platform Features**
+### **Platform Features**
+
+#### **User Features**
 - **Portfolio Management**: Real-time tracking dengan alokasi aset
 - **Dummy Trading**: Simulasi investasi reksa dana & obligasi
 - **Watchlist**: Monitoring produk investasi favorit
 - **Transaction History**: Riwayat transaksi dengan status tracking
 - **Educational Content**: Micro-learning keuangan
+- **Smart Navigation**: Role-based bottom navigation
+
+#### **Admin Features**
+- **Product Management**: CRUD operations untuk produk investasi
+- **Admin Dashboard**: Statistik platform dan monitoring
+- **User Management**: Overview data pengguna
+- **Admin Navigation**: Navbar khusus dengan icon manajemen
+- **Role-Based Access**: Proteksi route otomatis
 
 ### **Key Technologies**
 - **Frontend**: Next.js 15.3.3 (App Router)
@@ -61,7 +73,9 @@ users (
   email: String (Unique)
   passwordHash: String
   name: String?
+  role: String (Default: "USER") (USER, ADMIN)
   riskProfile: String? (KONSERVATIF, MODERAT, AGRESIF)
+  isActive: Boolean (Default: true)
   createdAt: DateTime
   updatedAt: DateTime
 )
@@ -153,8 +167,12 @@ api/
 ├── auth/
 │   ├── [...nextauth]/route.ts    # NextAuth handlers
 │   └── signup/route.ts           # User registration
+├── admin/                        # Admin-only APIs
+│   └── products/
+│       ├── route.ts              # Admin product CRUD
+│       └── [id]/route.ts         # Individual product management
 ├── products/
-│   └── route.ts                  # CRUD investment products
+│   └── route.ts                  # Public product listing
 ├── portfolio/
 │   └── [userId]/route.ts         # Portfolio management
 ├── transactions/
@@ -172,24 +190,44 @@ api/
 
 ### **Middleware Chain**
 ```
-Request → NextAuth Session Check → Route Handler → Prisma Query → Database
+Request → NextAuth Session Check → Role Check (RBAC) → Route Handler → Prisma Query → Database
 Response ← JSON Serialization ← Data Processing ← Query Result
+```
+
+### **RBAC Middleware Flow**
+```
+1. Request hits /admin/* route
+2. Middleware checks session exists
+3. Middleware verifies role === "ADMIN"
+4. If unauthorized → Redirect to /dashboard
+5. If authorized → Continue to route handler
 ```
 
 ## 🎯 **Component Architecture**
 
 ### **Page Components**
+
+#### **User Pages**
 - `app/page.tsx` - Redirect to dashboard
 - `app/dashboard/page.tsx` - Main dashboard (Bibit-style)
 - `app/portfolio/page.tsx` - Portfolio overview & asset allocation
 - `app/explore/page.tsx` - Browse investment products & watchlist
 - `app/transactions/page.tsx` - Transaction history & order management
-- `app/profile/page.tsx` - User profile & settings
+- `app/profile/page.tsx` - User profile & settings with logout
 - `app/lesson/page.tsx` - Educational content + quiz interface
-- `app/auth/signin/page.tsx` - Login form
-- `app/auth/signup/page.tsx` - Registration form
+
+#### **Admin Pages**
+- `app/admin/layout.tsx` - Admin layout with header & navigation
+- `app/admin/dashboard/page.tsx` - Admin dashboard with statistics
+- `app/admin/products/page.tsx` - Product management interface
+
+#### **Auth Pages**
+- `app/auth/signin/page.tsx` - Login form (clean, no navbar)
+- `app/auth/signup/page.tsx` - Registration form (clean, no navbar)
 
 ### **UI Components** (`components/ui/`)
+
+#### **Core Components**
 - `Button` - Action buttons with variants
 - `Card` - Content containers
 - `Progress` - Progress bars
@@ -197,14 +235,23 @@ Response ← JSON Serialization ← Data Processing ← Query Result
 - `Input` - Form inputs
 - `Label` - Form labels
 - `Badge` - Status indicators
+
+#### **Business Components**
 - `InvestmentCard` - Investment product display
 - `PortfolioSummary` - Portfolio overview component
 - `TransactionHistory` - Transaction list component
 
+#### **Navigation Components**
+- `BottomNavigation` - User bottom navigation
+- `AdminBottomNavigation` - Admin bottom navigation
+- `RoleBasedNavigation` - Smart navigation based on role
+
 ### **Utility Libraries** (`lib/`)
-- `auth.ts` - NextAuth configuration
+- `auth.ts` - NextAuth configuration with role support
 - `prisma.ts` - Database client
 - `utils.ts` - Helper functions (cn utility)
+- `roles.ts` - RBAC utility functions
+- `middleware.ts` - Route protection middleware
 
 ## 🔐 **Security Architecture**
 

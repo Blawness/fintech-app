@@ -1,108 +1,224 @@
-# Bibit - Investasi Mudah untuk Semua
+# Fintech App Documentation
 
-## 🎯 **Core Purpose**
-Platform investasi reksa dana dan obligasi dengan edukasi keuangan untuk masyarakat Indonesia. Kombinasi antara broker dummy dan sistem pembelajaran keuangan yang interaktif.
+## 🚀 **Market Simulator - NEW FEATURE!**
 
-## 🚀 **Quick Start**
+### **Overview**
+Sistem Market Simulator yang secara otomatis mengupdate harga produk investasi berdasarkan expected return dan tingkat risiko. Harga akan berubah setiap 10 detik dengan volatilitas yang sesuai dengan profil risiko produk.
+
+### **Key Features**
+- ✅ **Auto Price Updates**: Update harga setiap 10 detik
+- ✅ **Risk-Based Volatility**: 
+  - Konservatif: 2% volatilitas
+  - Moderat: 5% volatilitas  
+  - Agresif: 10% volatilitas
+- ✅ **Price History Tracking**: Riwayat perubahan harga
+- ✅ **Portfolio Auto-Update**: Portfolio terupdate real-time
+- ✅ **Admin Control Panel**: Kontrol penuh untuk admin
+
+### **Quick Start**
+
+1. **Start Market Simulator**:
+   ```bash
+   # Market simulator akan otomatis start di production
+   npm run dev
+   ```
+
+2. **Access Admin Panel**:
+   - Login sebagai admin
+   - Navigate ke `/admin/market`
+   - Start/Stop simulator
+   - View price history
+
+3. **Monitor Real-time**:
+   - Portfolio values update otomatis
+   - Price changes terlihat real-time
+   - Return calculations update otomatis
+
+### **API Endpoints**
+
 ```bash
+# Manual simulation
+POST /api/market/simulate
+
+# Control simulator (admin only)
+POST /api/market/control
+{
+  "action": "start|stop|status",
+  "interval": 10000
+}
+
+# Get price history
+GET /api/market/history?hours=24&limit=100
+```
+
+### **Algorithm**
+- 70% mengikuti expected return trend
+- 30% pergerakan random berdasarkan volatilitas
+- Harga minimum 1% dari harga asli (mencegah negatif)
+
+---
+
+## 📚 **Documentation Index**
+
+### **Core Documentation**
+- [Architecture](architecture.md) - System architecture overview
+- [API Reference](api.md) - Complete API documentation
+- [Investment APIs](api-investment.md) - Investment-specific APIs
+- [RBAC](rbac.md) - Role-based access control
+- [Styling](styling.md) - UI/UX guidelines
+
+### **New Features**
+- [Market Simulator](market-simulator.md) - **NEW!** Market simulation system
+- [Debugging Guide](debugging.md) - Troubleshooting guide
+
+### **Quick Reference**
+- [Quick Reference](quick-reference.md) - Common commands and shortcuts
+
+---
+
+## 🛠️ **Setup & Installation**
+
+### **Prerequisites**
+- Node.js 18+
+- MySQL database
+- npm/yarn
+
+### **Installation**
+```bash
+# Clone repository
+git clone <repository-url>
+cd fintech-app
+
+# Install dependencies
 npm install
-npx prisma generate && npx prisma db push && npx prisma db seed
+
+# Setup environment
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Setup database
+npx prisma db push
+npx prisma db seed
+
+# Start development server
 npm run dev
 ```
 
-## 📊 **App Architecture**
+### **Database Seeding**
+```bash
+# Seed admin user
+npx prisma db seed --file=prisma/seed-admin.ts
 
-### **Tech Stack**
-- **Frontend**: Next.js 15.3.3 (App Router), React 18.3.1, TypeScript
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: MySQL 8.0+
-- **Auth**: NextAuth.js v4.24.11
-- **UI**: shadcn/ui, Tailwind CSS 3.4.17, Radix UI
+# Seed investment products
+npx prisma db seed --file=prisma/seed-investment.ts
 
-### **Key Features**
-- ✅ User authentication (email/password)
-- ✅ Portfolio management dengan tracking real-time
-- ✅ Investasi dummy reksa dana dan obligasi
-- ✅ Watchlist untuk monitoring produk investasi
-- ✅ Sistem transaksi dengan status tracking
-- ✅ Daily financial lessons in Indonesian
-- ✅ Interactive quizzes with progress tracking
-- ✅ Streak counter and gamification
-- ✅ Responsive design dengan UI menyerupai Bibit
-
-## 📁 **Project Structure**
+# Seed all data
+npx prisma db seed
 ```
-├── app/                    # Next.js App Router
-│   ├── api/               # API routes
-│   │   ├── products/      # Investment products API
-│   │   ├── portfolio/     # Portfolio management API
-│   │   ├── transactions/  # Transaction API
-│   │   ├── watchlist/     # Watchlist API
-│   │   └── profile/       # User profile API
-│   ├── auth/              # Authentication pages
-│   ├── dashboard/         # Main dashboard (Bibit-style)
-│   ├── portfolio/         # Portfolio page
-│   ├── explore/           # Explore investment products
-│   ├── transactions/      # Transaction history
-│   ├── profile/           # User profile
-│   ├── lesson/            # Educational content
-│   └── globals.css        # Global styles
-├── components/ui/         # shadcn/ui components
-│   ├── investment-card.tsx    # Investment product card
-│   ├── portfolio-summary.tsx  # Portfolio overview
-│   └── transaction-history.tsx # Transaction list
-├── lib/                   # Utility libraries
-├── prisma/                # Database schema & seed
-└── docs/                  # Documentation
-```
+
+---
+
+## 🎯 **Features Overview**
+
+### **User Features**
+- 📊 **Investment Platform**: Buy/sell investment products
+- 💼 **Portfolio Management**: Track investments and returns
+- 📈 **Real-time Updates**: Live price updates and portfolio values
+- 📚 **Financial Education**: Interactive lessons and quizzes
+- 📱 **Mobile-First Design**: Responsive and user-friendly
+
+### **Admin Features**
+- 👥 **User Management**: Manage users and roles
+- 📊 **Product Management**: Create/edit investment products
+- 💰 **Balance Management**: Inject balances for users
+- 📈 **Analytics Dashboard**: Track platform performance
+- 🎮 **Market Simulator**: Control market simulation
+
+### **Technical Features**
+- 🔐 **Authentication**: NextAuth.js with role-based access
+- 🗄️ **Database**: Prisma ORM with MySQL
+- 🎨 **UI Components**: Custom Tailwind CSS components
+- 📱 **Responsive Design**: Mobile-first approach
+- 🔄 **Real-time Updates**: Live data synchronization
+
+---
+
+## 🚀 **Getting Started**
+
+### **For Users**
+1. Register/Login at `/auth/signup` or `/auth/signin`
+2. Complete your risk profile
+3. Explore investment products at `/explore`
+4. Start investing at `/investment`
+5. Monitor your portfolio at `/portfolio`
+
+### **For Admins**
+1. Login with admin credentials
+2. Access admin dashboard at `/admin/dashboard`
+3. Manage products at `/admin/products`
+4. Control market simulator at `/admin/market`
+5. Monitor users at `/admin/users`
+
+---
 
 ## 🔧 **Development**
-- Uses modern Next.js 15 features
-- TypeScript for type safety
-- Prisma for database operations
-- Tailwind for styling
-- Hot reload enabled
 
-## 📚 **Key Components**
-- `Dashboard`: Portfolio overview dengan UI menyerupai Bibit
-- `Portfolio`: Detail portfolio dan alokasi aset
-- `Explore`: Browse produk investasi dan watchlist
-- `Transactions`: Riwayat transaksi dan order management
-- `Profile`: User profile dan settings
-- `Lesson`: Daily content + quiz (edukasi keuangan)
-- `Auth`: Login/register forms
+### **Project Structure**
+```
+fintech-app/
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── admin/             # Admin pages
+│   └── (pages)/           # User pages
+├── components/            # React components
+├── lib/                   # Utility libraries
+├── prisma/               # Database schema & seeds
+├── docs/                 # Documentation
+└── scripts/              # Utility scripts
+```
 
-## 🎨 **UI System**
-- shadcn/ui component library
-- Tailwind CSS for styling
-- Radix UI primitives
-- Custom design tokens in globals.css
+### **Key Technologies**
+- **Frontend**: Next.js 14, React, TypeScript
+- **Styling**: Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: MySQL with Prisma ORM
+- **Authentication**: NextAuth.js
+- **Deployment**: Vercel (recommended)
 
-## 🔐 **Authentication**
-- NextAuth.js with Prisma adapter
-- JWT-based sessions
-- Password hashing with bcryptjs
-- Protected routes
+---
 
-## 📊 **Database Schema**
-- `User`: Authentication data + risk profile
-- `Portfolio`: User portfolio dengan total value & gain
-- `PortfolioHolding`: Detail holding per produk
-- `InvestmentProduct`: Produk investasi (reksa dana, obligasi, SBN)
-- `InvestmentTransaction`: Transaksi buy/sell
-- `Watchlist`: Produk yang di-watchlist user
-- `Lesson`: Educational content storage
-- `Quiz`: Question/answer data
-- `UserProgress`: Learning tracking
+## 📞 **Support**
 
-## 🐛 **Common Issues**
-- Database connection: Check `.env.local` DATABASE_URL
-- Auth errors: Verify NEXTAUTH_SECRET
-- Build errors: Clear `.next` folder and reinstall
+### **Common Issues**
+- Check [Debugging Guide](debugging.md)
+- Review [API Documentation](api.md)
+- Check database connection
+- Verify environment variables
 
-## 📖 **Documentation Links**
-- [API Reference](./api.md)
-- [Styling Guide](./styling.md)
-- [Debugging](./debugging.md)
-- [Architecture](./architecture.md)
+### **Market Simulator Issues**
+- Ensure products are seeded
+- Check admin permissions
+- Monitor console logs
+- Verify database transactions
 
+---
+
+## 🎉 **What's New**
+
+### **Latest Updates**
+- ✅ **Market Simulator**: Real-time price simulation
+- ✅ **Price History**: Track price changes over time
+- ✅ **Admin Controls**: Full market control panel
+- ✅ **Auto Portfolio Updates**: Real-time portfolio calculations
+- ✅ **Risk-Based Volatility**: Realistic market simulation
+
+### **Coming Soon**
+- 📊 Advanced analytics
+- 📈 Price charts and graphs
+- 🔔 Price alerts
+- 📱 Mobile app
+- 🌍 Multi-language support
+
+---
+
+*Last updated: January 2024*

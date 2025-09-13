@@ -3,7 +3,7 @@
 ## 🔗 **Authentication APIs**
 
 ### `POST /api/auth/signup`
-Register new user account.
+Register new user account (default role: USER).
 ```typescript
 // Request
 {
@@ -18,13 +18,17 @@ Register new user account.
   "user": {
     "id": "string",
     "email": "user@example.com",
-    "name": "string"
+    "name": "string",
+    "role": "USER"
   }
 }
 ```
 
 ### `POST /api/auth/[...nextauth]`
 NextAuth.js authentication endpoints (login, logout, session).
+- **Login**: Returns JWT with role information
+- **Session**: Includes user role for RBAC
+- **Logout**: Clears session and redirects to signin
 
 ## 📊 **Progress APIs**
 
@@ -203,8 +207,95 @@ Get daily lesson content and quiz.
 }
 ```
 
-## 🔒 **Authentication Required**
-All APIs except signup require authentication via NextAuth.js session.
+## 🔐 **Admin APIs** (Admin Only)
+
+### `GET /api/admin/products`
+Get all investment products (admin only).
+```typescript
+// Response
+[
+  {
+    "id": "string",
+    "name": "Reksa Dana Pasar Uang Syariah",
+    "type": "REKSADANA",
+    "category": "PASAR_UANG",
+    "riskLevel": "KONSERVATIF",
+    "expectedReturn": 4.5,
+    "minInvestment": 10000,
+    "currentPrice": 1000,
+    "description": "string",
+    "isActive": true,
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z"
+  }
+]
+```
+
+### `POST /api/admin/products`
+Create new investment product (admin only).
+```typescript
+// Request
+{
+  "name": "string",
+  "type": "REKSADANA",
+  "category": "PASAR_UANG",
+  "riskLevel": "KONSERVATIF",
+  "expectedReturn": 4.5,
+  "minInvestment": 10000,
+  "currentPrice": 1000,
+  "description": "string"
+}
+
+// Response
+{
+  "id": "string",
+  "name": "string",
+  // ... product data
+}
+```
+
+### `GET /api/admin/products/[id]`
+Get single product details (admin only).
+```typescript
+// Response
+{
+  "id": "string",
+  "name": "string",
+  // ... full product data
+}
+```
+
+### `PUT /api/admin/products/[id]`
+Update product (admin only).
+```typescript
+// Request
+{
+  "name": "string",
+  "isActive": true,
+  // ... any updatable fields
+}
+
+// Response
+{
+  "id": "string",
+  // ... updated product data
+}
+```
+
+### `DELETE /api/admin/products/[id]`
+Delete product (admin only).
+```typescript
+// Response
+{
+  "message": "Product deleted successfully"
+}
+```
+
+## 🔒 **Authentication & Authorization**
+- **All APIs except signup** require authentication via NextAuth.js session
+- **Admin APIs** require `role: "ADMIN"` in session
+- **User APIs** accessible by both USER and ADMIN roles
+- **Route Protection**: Middleware automatically checks roles
 
 ## 📡 **Error Handling**
 ```typescript
