@@ -16,7 +16,8 @@
     "dashboard:test": "node scripts/test-dashboard-sync.js",
     "sync:test": "node scripts/test-real-time-sync.js",
     "debug:portfolio": "node scripts/debug-portfolio.js",
-    "perf:test": "node scripts/measure-api-performance.js"
+    "perf:test": "node scripts/measure-api-performance.js",
+    "monitor:calls": "node scripts/measure-calls-per-minute.js"
   },
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.7",
