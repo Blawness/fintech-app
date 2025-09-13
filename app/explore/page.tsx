@@ -103,7 +103,7 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-32">
         {/* Search Bar */}
         <div className="mb-6">
           <div className="relative">

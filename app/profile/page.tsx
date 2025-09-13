@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -17,7 +17,8 @@ import {
   Calendar,
   CreditCard,
   ArrowRight,
-  Wallet
+  Wallet,
+  LogOut
 } from 'lucide-react'
 import { BottomNavigation } from '@/components/ui/bottom-navigation'
 
@@ -61,6 +62,14 @@ export default function ProfilePage() {
     }
   }
 
+  const handleLogout = async () => {
+    try {
+      await signOut({ callbackUrl: '/auth/signin' })
+    } catch (error) {
+      console.error('Error during logout:', error)
+    }
+  }
+
   if (status === 'loading' || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -85,7 +94,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-32">
         {/* User Profile Section */}
         <Card className="mb-6">
           <CardContent className="p-6">
@@ -249,6 +258,22 @@ export default function ProfilePage() {
                 </div>
                 <ArrowRight className="w-4 h-4 text-gray-400" />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Logout Section */}
+          <Card className="mb-6">
+            <CardContent className="p-0">
+              <button
+                onClick={handleLogout}
+                className="flex items-center justify-between p-4 w-full text-left hover:bg-red-50 transition-colors"
+              >
+                <div className="flex items-center space-x-3">
+                  <LogOut className="w-5 h-5 text-red-600" />
+                  <span className="text-red-600 font-medium">Logout</span>
+                </div>
+                <ArrowRight className="w-4 h-4 text-red-400" />
+              </button>
             </CardContent>
           </Card>
         </div>

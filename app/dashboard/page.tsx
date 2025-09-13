@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-32">
         {/* Portfolio Summary */}
         <Card className="mb-6 bg-gradient-to-r from-green-50 to-green-100 border-green-200">
           <CardContent className="p-6">

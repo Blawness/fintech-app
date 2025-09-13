@@ -126,7 +126,7 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-32">
         {/* Filter Tabs */}
         <div className="flex space-x-2 mb-6">
           {[

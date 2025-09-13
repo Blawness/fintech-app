@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { RoleBasedNavigation } from '@/components/ui/role-based-navigation'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,7 +20,10 @@ export default function RootLayout({
     <html lang="id">
       <body className={inter.className}>
         <Providers>
-          {children}
+          <div className="min-h-screen bg-gray-50">
+            {children}
+            <RoleBasedNavigation />
+          </div>
         </Providers>
       </body>
     </html>

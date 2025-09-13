@@ -82,7 +82,7 @@ export default function TransactionsPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-32">
         {/* Tabs */}
         <div className="flex space-x-4 mb-6">
           <button
