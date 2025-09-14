@@ -149,3 +149,4 @@ export function PortfolioTransactions({ transactions }: PortfolioTransactionsPro
     </Card>
   )
 }
+

@@ -1,14 +1,23 @@
 import { prisma } from './prisma'
 
-// Market simulation configuration
+// Market simulation configuration - More realistic volatility
 const RISK_VOLATILITY = {
-  'KONSERVATIF': 0.02, // 2% volatility
-  'MODERAT': 0.05,     // 5% volatility  
-  'AGRESIF': 0.10      // 10% volatility
+  'KONSERVATIF': 0.001, // 0.1% volatility for conservative products
+  'MODERAT': 0.003,     // 0.3% volatility for moderate products  
+  'AGRESIF': 0.008      // 0.8% volatility for aggressive products
 }
 
-const MARKET_TREND_FACTOR = 0.7 // 70% follow expected return trend
-const RANDOM_FACTOR = 0.3 // 30% random movement
+// Product type volatility multipliers
+const TYPE_VOLATILITY = {
+  'PASAR_UANG': 0.3,    // Money market - very stable
+  'OBLIGASI': 0.5,      // Bonds - stable
+  'CAMPURAN': 0.8,      // Mixed - moderate volatility
+  'SAHAM': 1.2          // Stocks - higher volatility
+}
+
+const MARKET_TREND_FACTOR = 0.85 // 85% follow expected return trend
+const RANDOM_FACTOR = 0.15 // 15% random movement
+const MEAN_REVERSION_FACTOR = 0.1 // 10% mean reversion for conservative products
 
 let simulationInterval: NodeJS.Timeout | null = null
 let isRunning = false
@@ -17,6 +26,7 @@ export class MarketSimulator {
   private static instance: MarketSimulator
   private intervalId: NodeJS.Timeout | null = null
   private isRunning = false
+  private spare: number | null = null // For Box-Muller transform
 
   private constructor() {}
 
@@ -33,6 +43,12 @@ export class MarketSimulator {
       return
     }
 
+    // Clear any existing interval first
+    if (this.intervalId) {
+      clearInterval(this.intervalId)
+      this.intervalId = null
+    }
+
     console.log(`Starting market simulator with ${intervalMs}ms interval`)
     this.isRunning = true
 
@@ -41,6 +57,7 @@ export class MarketSimulator {
         await this.simulateMarket()
       } catch (error) {
         console.error('Error in market simulation:', error)
+        // Don't stop the simulator on individual errors
       }
     }, intervalMs)
 
@@ -127,27 +144,57 @@ export class MarketSimulator {
     const currentPrice = product.currentPrice
     const expectedReturn = product.expectedReturn / 100 // Convert percentage to decimal
     const riskLevel = product.riskLevel as keyof typeof RISK_VOLATILITY
-    const volatility = RISK_VOLATILITY[riskLevel] || 0.02
+    const category = product.category as keyof typeof TYPE_VOLATILITY
+    
+    // Base volatility from risk level
+    const baseVolatility = RISK_VOLATILITY[riskLevel] || 0.001
+    
+    // Apply category multiplier
+    const typeMultiplier = TYPE_VOLATILITY[category] || 1.0
+    const adjustedVolatility = baseVolatility * typeMultiplier
 
     // Calculate trend based on expected return (annualized to interval)
     // Assuming 10-second intervals, there are 3153600 intervals in a year
     const intervalsPerYear = 3153600
     const trendPerInterval = expectedReturn / intervalsPerYear
 
-    // Generate random factor (-1 to 1)
-    const randomFactor = (Math.random() - 0.5) * 2
+    // Generate random factor with normal distribution (more realistic)
+    const randomFactor = this.generateNormalRandom() * 2 // Scale to -2 to 2
 
-    // Calculate price change
-    // 70% follows expected return trend, 30% is random
+    // Calculate price change components
     const trendChange = currentPrice * trendPerInterval * MARKET_TREND_FACTOR
-    const randomChange = currentPrice * volatility * randomFactor * RANDOM_FACTOR
+    const randomChange = currentPrice * adjustedVolatility * randomFactor * RANDOM_FACTOR
     
-    const totalChange = trendChange + randomChange
+    // Mean reversion for conservative products (tend to return to expected performance)
+    let meanReversionChange = 0
+    if (riskLevel === 'KONSERVATIF') {
+      // Calculate how far we are from expected performance
+      const expectedPrice = currentPrice * (1 + expectedReturn / 100) // What price should be after 1 year
+      const deviationFromExpected = (currentPrice - expectedPrice) / expectedPrice
+      meanReversionChange = -currentPrice * deviationFromExpected * MEAN_REVERSION_FACTOR
+    }
+    
+    const totalChange = trendChange + randomChange + meanReversionChange
     const newPrice = currentPrice + totalChange
 
-    // Ensure price doesn't go below 1% of original price (prevent negative prices)
-    const minPrice = currentPrice * 0.01
+    // Ensure price doesn't go below 5% of original price (more realistic floor)
+    const minPrice = currentPrice * 0.05
     return Math.max(newPrice, minPrice)
+  }
+
+  // Generate normally distributed random number using Box-Muller transform
+  private generateNormalRandom(): number {
+    if (this.spare !== null) {
+      const temp = this.spare
+      this.spare = null
+      return temp
+    }
+    
+    const u1 = Math.random()
+    const u2 = Math.random()
+    const mag = Math.sqrt(-2 * Math.log(u1))
+    this.spare = mag * Math.cos(2 * Math.PI * u2)
+    return mag * Math.sin(2 * Math.PI * u2)
   }
 
   private async updateAllPortfolioHoldings(): Promise<void> {

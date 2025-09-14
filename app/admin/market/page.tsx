@@ -45,6 +45,7 @@ export default function MarketControlPage() {
   const [priceHistory, setPriceHistory] = useState<Record<string, ProductHistory>>({})
   const [interval, setInterval] = useState(10000)
   const [showHistory, setShowHistory] = useState(false)
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
 
   const fetchMarketStatus = async () => {
     try {
@@ -69,11 +70,19 @@ export default function MarketControlPage() {
   }
 
   const controlMarket = async (action: string) => {
+    // Prevent multiple simultaneous requests
+    if (isLoading) {
+      return
+    }
+    
     setIsLoading(true)
     try {
       let response
       
       if (action === 'start') {
+        // Stop any existing polling first
+        stopPolling()
+        
         response = await fetch('/api/market/start', {
           method: 'POST',
           headers: {
@@ -103,6 +112,7 @@ export default function MarketControlPage() {
           stopPolling()
         }
       } else {
+        console.error('Market control error:', data.error)
         alert(data.error || 'Error controlling market simulator')
       }
     } catch (error) {
@@ -137,6 +147,9 @@ export default function MarketControlPage() {
   }
 
   const startPolling = () => {
+    // Clear any existing polling first
+    stopPolling()
+    
     const pollInterval = setInterval(async () => {
       try {
         const response = await fetch('/api/market/simulate')
@@ -149,14 +162,13 @@ export default function MarketControlPage() {
       }
     }, 5000) // Poll every 5 seconds
 
-    // Store interval ID for cleanup
-    ;(window as any).marketPollInterval = pollInterval
+    setPollingInterval(pollInterval)
   }
 
   const stopPolling = () => {
-    if ((window as any).marketPollInterval) {
-      clearInterval((window as any).marketPollInterval)
-      ;(window as any).marketPollInterval = null
+    if (pollingInterval) {
+      clearInterval(pollingInterval)
+      setPollingInterval(null)
     }
   }
 
@@ -169,6 +181,15 @@ export default function MarketControlPage() {
       stopPolling()
     }
   }, [])
+
+  // Add effect to sync polling with market status
+  useEffect(() => {
+    if (marketStatus?.isRunning && !pollingInterval) {
+      startPolling()
+    } else if (!marketStatus?.isRunning && pollingInterval) {
+      stopPolling()
+    }
+  }, [marketStatus?.isRunning, pollingInterval])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -241,7 +262,7 @@ export default function MarketControlPage() {
                     className="flex items-center gap-2"
                   >
                     <Play className="h-4 w-4" />
-                    Start
+                    {isLoading ? 'Starting...' : 'Start'}
                   </Button>
                   <Button
                     onClick={() => controlMarket('stop')}
@@ -250,7 +271,7 @@ export default function MarketControlPage() {
                     className="flex items-center gap-2"
                   >
                     <Pause className="h-4 w-4" />
-                    Stop
+                    {isLoading ? 'Stopping...' : 'Stop'}
                   </Button>
                   <Button
                     onClick={simulateMarket}
@@ -258,8 +279,8 @@ export default function MarketControlPage() {
                     variant="outline"
                     className="flex items-center gap-2"
                   >
-                    <RefreshCw className="h-4 w-4" />
-                    Simulate Once
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    {isLoading ? 'Simulating...' : 'Simulate Once'}
                   </Button>
                   <Button
                     onClick={() => {
@@ -270,6 +291,7 @@ export default function MarketControlPage() {
                     }}
                     variant="outline"
                     className="flex items-center gap-2"
+                    disabled={isLoading}
                   >
                     <BarChart3 className="h-4 w-4" />
                     {showHistory ? 'Hide' : 'Show'} History

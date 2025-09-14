@@ -176,3 +176,4 @@ export function ProductsList({ initialProducts }: ProductsListProps) {
     </div>
   )
 }
+

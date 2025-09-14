@@ -5,7 +5,10 @@ export async function GET(request: NextRequest) {
   try {
     const products = await prisma.investmentProduct.findMany({
       where: {
-        isActive: true
+        isActive: true,
+        id: {
+          not: 'BALANCE_INJECTION' // Hide balance injection product from regular users
+        }
       },
       orderBy: {
         createdAt: 'desc'

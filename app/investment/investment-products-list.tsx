@@ -223,3 +223,4 @@ export function InvestmentProductsList({ products, portfolio, userId }: Investme
     </>
   )
 }
+

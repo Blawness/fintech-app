@@ -130,7 +130,7 @@ export function BalanceInjectionButton({ userId, userName, currentBalance }: Bal
                     placeholder="Masukkan jumlah saldo"
                     min="1"
                     max="100000000"
-                    step="1000"
+                    step="1"
                     required
                     autoComplete="off"
                   />
