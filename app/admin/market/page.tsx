@@ -45,7 +45,7 @@ export default function MarketControlPage() {
   const [priceHistory, setPriceHistory] = useState<Record<string, ProductHistory>>({})
   const [interval, setInterval] = useState(10000)
   const [showHistory, setShowHistory] = useState(false)
-  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null)
+  const [pollingInterval, setPollingInterval] = useState<number | null>(null)
 
   const fetchMarketStatus = async () => {
     try {
@@ -150,16 +150,18 @@ export default function MarketControlPage() {
     // Clear any existing polling first
     stopPolling()
     
-    const pollInterval = setInterval(async () => {
-      try {
-        const response = await fetch('/api/market/simulate')
-        const data = await response.json()
-        if (data.products) {
-          setLastUpdate(data.products)
+    const pollInterval = window.setInterval(() => {
+      (async () => {
+        try {
+          const response = await fetch('/api/market/simulate')
+          const data = await response.json()
+          if (data.products) {
+            setLastUpdate(data.products)
+          }
+        } catch (error) {
+          console.error('Error polling market updates:', error)
         }
-      } catch (error) {
-        console.error('Error polling market updates:', error)
-      }
+      })()
     }, 5000) // Poll every 5 seconds
 
     setPollingInterval(pollInterval)
@@ -167,7 +169,7 @@ export default function MarketControlPage() {
 
   const stopPolling = () => {
     if (pollingInterval) {
-      clearInterval(pollingInterval)
+      window.clearInterval(pollingInterval)
       setPollingInterval(null)
     }
   }

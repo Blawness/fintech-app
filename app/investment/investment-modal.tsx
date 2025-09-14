@@ -37,7 +37,16 @@ interface Portfolio {
   riskProfile: string
   rdnBalance: number
   tradingBalance: number
-  holdings: any[]
+  holdings: {
+    id: string;
+    productId: string;
+    units: number;
+    averagePrice: number;
+    product: {
+      name: string;
+      currentPrice: number;
+    };
+  }[]
 }
 
 interface InvestmentModalProps {

@@ -19,8 +19,8 @@ const MARKET_TREND_FACTOR = 0.85 // 85% follow expected return trend
 const RANDOM_FACTOR = 0.15 // 15% random movement
 const MEAN_REVERSION_FACTOR = 0.1 // 10% mean reversion for conservative products
 
-let simulationInterval: NodeJS.Timeout | null = null
-let isRunning = false
+const simulationInterval: NodeJS.Timeout | null = null
+const isRunning = false
 
 export class MarketSimulator {
   private static instance: MarketSimulator
@@ -140,7 +140,12 @@ export class MarketSimulator {
     }
   }
 
-  private calculateNewPrice(product: any): number {
+  private calculateNewPrice(product: {
+    currentPrice: number;
+    expectedReturn: number;
+    riskLevel: string;
+    category: string;
+  }): number {
     const currentPrice = product.currentPrice
     const expectedReturn = product.expectedReturn / 100 // Convert percentage to decimal
     const riskLevel = product.riskLevel as keyof typeof RISK_VOLATILITY

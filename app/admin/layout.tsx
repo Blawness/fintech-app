@@ -9,7 +9,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { data: session } = useSession()
+  useSession()
 
   const handleLogout = async () => {
     try {

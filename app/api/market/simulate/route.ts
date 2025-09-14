@@ -92,7 +92,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function calculateNewPrice(product: any): number {
+function calculateNewPrice(product: {
+  currentPrice: number;
+  expectedReturn: number;
+  riskLevel: string;
+  category: string;
+}): number {
   const currentPrice = product.currentPrice
   const expectedReturn = product.expectedReturn / 100 // Convert percentage to decimal
   const riskLevel = product.riskLevel as keyof typeof RISK_VOLATILITY

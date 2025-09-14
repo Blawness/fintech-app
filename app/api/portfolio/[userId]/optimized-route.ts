@@ -34,7 +34,8 @@ export async function GET(
             id: userId,
             email: `${userId}@test.com`,
             name: `Test User ${userId}`,
-            role: 'USER'
+            role: 'USER',
+            passwordHash: 'dummy_hash_for_test_user'
           }
         })
       }

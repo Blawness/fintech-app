@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const currentPrice = roundToDecimals(product.currentPrice, 2)
     const totalValue = roundToDecimals(roundedUnits * currentPrice, 2)
     const gain = roundToDecimals((currentPrice - holding.averagePrice) * roundedUnits, 2)
-    const gainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
+    // const gainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
 
     // Start transaction
     const result = await prisma.$transaction(async (tx) => {

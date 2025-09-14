@@ -146,7 +146,7 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
         secondsVisible: false,
         drawTicks: true,
         drawLabels: true,
-        tickMarkFormatter: (time: any, tickMarkType: any, locale: string) => {
+        tickMarkFormatter: (time: number, tickMarkType: string, locale: string) => {
           const date = new Date(time * 1000)
           return date.toLocaleTimeString('id-ID', { 
             hour: '2-digit', 

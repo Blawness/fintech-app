@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface DeleteProductButtonProps {
   productId: string
@@ -10,7 +9,6 @@ interface DeleteProductButtonProps {
 }
 
 export function DeleteProductButton({ productId, productName, onDeleted }: DeleteProductButtonProps) {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
 
@@ -50,7 +48,7 @@ export function DeleteProductButton({ productId, productName, onDeleted }: Delet
             Konfirmasi Hapus Produk
           </h3>
           <p className="text-sm text-gray-600 mb-4">
-            Apakah Anda yakin ingin menghapus produk <strong>"{productName}"</strong>? 
+            Apakah Anda yakin ingin menghapus produk <strong>&quot;{productName}&quot;</strong>? 
             Tindakan ini tidak dapat dibatalkan.
           </p>
           <div className="flex justify-end space-x-3">

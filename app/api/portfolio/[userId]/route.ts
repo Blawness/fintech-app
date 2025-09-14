@@ -33,7 +33,8 @@ export async function GET(
             id: userId,
             email: `${userId}@test.com`,
             name: `Test User ${userId}`,
-            role: 'USER'
+            role: 'USER',
+            passwordHash: 'dummy_hash_for_test_user'
           }
         })
       }
@@ -121,9 +122,9 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching portfolio:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch portfolio',
-        details: error.message
+        details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
     )

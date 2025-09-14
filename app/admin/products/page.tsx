@@ -16,6 +16,13 @@ export default async function AdminProducts() {
     orderBy: { createdAt: 'desc' }
   })
 
+  // Convert Date objects to strings for client-side compatibility
+  const serializedProducts = products.map(product => ({
+    ...product,
+    createdAt: product.createdAt.toISOString(),
+    updatedAt: product.updatedAt.toISOString()
+  }))
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -37,7 +44,7 @@ export default async function AdminProducts() {
       </div>
 
       {/* Products Table */}
-      <ProductsList initialProducts={products} />
+      <ProductsList initialProducts={serializedProducts} />
     </div>
   )
 }

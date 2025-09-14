@@ -141,7 +141,7 @@ const TradingChart: React.FC<TradingChartProps> = ({ product, className = '' }) 
           borderColor: '#cccccc',
           timeVisible: true,
           secondsVisible: false,
-          tickMarkFormatter: (time: any) => {
+          tickMarkFormatter: (time: number) => {
             const date = new Date(time * 1000)
             return date.toLocaleTimeString('id-ID', { 
               hour: '2-digit', 

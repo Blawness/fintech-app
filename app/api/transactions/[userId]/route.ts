@@ -11,7 +11,11 @@ export async function GET(
     const type = searchParams.get('type') // 'order' or 'history'
     const status = searchParams.get('status') // 'PENDING', 'COMPLETED', 'CANCELLED'
 
-    const whereClause: any = { userId }
+    const whereClause: { 
+      userId: string; 
+      type?: string;
+      status?: string | { in: string[] };
+    } = { userId }
     
     if (type === 'order') {
       whereClause.status = 'PENDING'
