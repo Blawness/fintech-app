@@ -114,8 +114,24 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
           background: { type: ColorType.Solid, color: '#ffffff' },
           textColor: '#333333',
         },
-        width: 800,
+        width: container.clientWidth || 800,
         height: 400,
+        grid: {
+          vertLines: { color: '#f0f0f0' },
+          horzLines: { color: '#f0f0f0' },
+        },
+        rightPriceScale: {
+          borderColor: '#cccccc',
+          scaleMargins: {
+            top: 0.1,
+            bottom: 0.1,
+          },
+        },
+        timeScale: {
+          borderColor: '#cccccc',
+          timeVisible: true,
+          secondsVisible: false,
+        },
       })
 
       console.log('[MinimalChart] Chart created successfully')
@@ -126,10 +142,27 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
       const lineSeries = chart.addSeries(LineSeries, {
         color: '#26a69a',
         lineWidth: 2,
+        priceLineVisible: true,
+        lastValueVisible: true,
       })
       
       console.log('[MinimalChart] Line series created successfully')
       lineSeriesRef.current = lineSeries
+
+      // Handle resize safely
+      const handleResize = () => {
+        if (chartContainerRef.current && chartRef.current) {
+          try {
+            chartRef.current.applyOptions({
+              width: chartContainerRef.current.clientWidth,
+            })
+          } catch (resizeError) {
+            console.warn('[MinimalChart] Resize warning:', resizeError)
+          }
+        }
+      }
+
+      window.addEventListener('resize', handleResize)
 
       setIsChartReady(true)
       console.log('[MinimalChart] === INITIALIZE COMPLETE ===')
@@ -309,41 +342,41 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
       )}
       
       {/* Header */}
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-xl font-bold text-gray-900">{product.name}</h3>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold text-gray-900">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-3xl font-bold text-gray-900">
                 Rp {product.currentPrice.toLocaleString('id-ID')}
               </span>
-              <span className={`text-sm flex items-center gap-1 ${priceChange.change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-lg flex items-center gap-1 px-3 py-1 rounded-full ${priceChange.change >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'}`}>
                 {priceChange.change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {priceChange.changePercent >= 0 ? '+' : ''}{priceChange.changePercent.toFixed(2)}%
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-1 px-2 py-1 rounded text-sm ${getRiskColor(product.riskLevel)}`}>
+          <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${getRiskColor(product.riskLevel)} bg-white shadow-sm`}>
               {getRiskIcon(product.riskLevel)}
               {product.riskLevel}
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-gray-600 bg-white px-4 py-2 rounded-full shadow-sm">
               Expected: +{product.expectedReturn}%
             </div>
           </div>
         </div>
 
         {/* Timeframe Selector */}
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-3 items-center">
           {timeframes.map((timeframe) => (
             <button
               key={timeframe.value}
               onClick={() => setSelectedTimeframe(timeframe.value)}
-              className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedTimeframe === timeframe.value
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white shadow-md transform scale-105'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-sm border border-gray-200'
               }`}
             >
               {timeframe.label}
@@ -363,7 +396,7 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
                 }
                 initializeChart()
               }}
-              className="px-3 py-1 rounded text-sm font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300"
             >
               Force Update
             </button>
@@ -375,11 +408,15 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
       <div className="p-4">
         <div 
           ref={chartContainerRef} 
-          className="w-full h-96 bg-gray-50 rounded border relative"
-          style={{ minHeight: '400px' }}
+          className="w-full bg-white rounded-lg border-2 border-gray-200 relative overflow-hidden"
+          style={{ 
+            height: '450px',
+            minHeight: '450px',
+            maxHeight: '450px'
+          }}
         >
           {!isChartReady && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded">
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
                 <p className="text-gray-600 text-sm">Initializing chart...</p>
@@ -390,28 +427,28 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
         
         {/* Chart Info */}
         {chartData.length > 0 && (
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">24H High:</span>
-              <div className="font-semibold">
+          <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <span className="text-gray-500 text-xs uppercase tracking-wide">24H High</span>
+              <div className="font-bold text-lg text-green-600">
                 Rp {Math.max(...chartData.map(d => d.high)).toLocaleString('id-ID')}
               </div>
             </div>
-            <div>
-              <span className="text-gray-500">24H Low:</span>
-              <div className="font-semibold">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <span className="text-gray-500 text-xs uppercase tracking-wide">24H Low</span>
+              <div className="font-bold text-lg text-red-600">
                 Rp {Math.min(...chartData.map(d => d.low)).toLocaleString('id-ID')}
               </div>
             </div>
-            <div>
-              <span className="text-gray-500">Volume:</span>
-              <div className="font-semibold">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <span className="text-gray-500 text-xs uppercase tracking-wide">Volume</span>
+              <div className="font-bold text-lg text-blue-600">
                 {Math.round(chartData.reduce((sum, d) => sum + d.volume, 0)).toLocaleString('id-ID')}
               </div>
             </div>
-            <div>
-              <span className="text-gray-500">Data Points:</span>
-              <div className="font-semibold">{chartData.length}</div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <span className="text-gray-500 text-xs uppercase tracking-wide">Data Points</span>
+              <div className="font-bold text-lg text-purple-600">{chartData.length}</div>
             </div>
           </div>
         )}
