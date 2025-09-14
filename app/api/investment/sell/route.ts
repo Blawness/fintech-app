@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Utility function for consistent rounding
+const roundToDecimals = (value: number, decimals: number = 4): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,6 +22,9 @@ export async function POST(request: NextRequest) {
     if (!productId || !units) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+
+    // Round units to 4 decimal places for consistency
+    const roundedUnits = roundToDecimals(units, 4)
 
     // Get user portfolio
     const portfolio = await prisma.portfolio.findUnique({
@@ -37,7 +45,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'You do not own this product' }, { status: 400 })
     }
 
-    if (units > holding.units) {
+    // Use a small tolerance for floating-point comparison
+    const tolerance = 0.0001
+    if (roundedUnits > (holding.units + tolerance)) {
       return NextResponse.json({ 
         error: `You can only sell up to ${holding.units.toFixed(4)} units` 
       }, { status: 400 })
@@ -52,10 +62,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    const currentPrice = product.currentPrice
-    const totalValue = units * currentPrice
-    const gain = (currentPrice - holding.averagePrice) * units
-    const gainPercent = ((currentPrice - holding.averagePrice) / holding.averagePrice) * 100
+    const currentPrice = roundToDecimals(product.currentPrice, 2)
+    const totalValue = roundToDecimals(roundedUnits * currentPrice, 2)
+    const gain = roundToDecimals((currentPrice - holding.averagePrice) * roundedUnits, 2)
+    const gainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
 
     // Start transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -66,7 +76,7 @@ export async function POST(request: NextRequest) {
           productId: productId,
           type: 'SELL',
           amount: totalValue,
-          units: units,
+          units: roundedUnits,
           price: currentPrice,
           totalValue: totalValue,
           status: 'COMPLETED'
@@ -84,17 +94,20 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      if (units === holding.units) {
+      // Check if selling all units (with tolerance for floating-point precision)
+      const isSellingAll = roundedUnits >= (holding.units - tolerance)
+      
+      if (isSellingAll) {
         // Delete holding if selling all units
         await tx.portfolioHolding.delete({
           where: { id: holding.id }
         })
       } else {
         // Update holding with remaining units
-        const remainingUnits = holding.units - units
-        const remainingValue = remainingUnits * currentPrice
-        const remainingGain = (currentPrice - holding.averagePrice) * remainingUnits
-        const remainingGainPercent = ((currentPrice - holding.averagePrice) / holding.averagePrice) * 100
+        const remainingUnits = roundToDecimals(holding.units - roundedUnits, 4)
+        const remainingValue = roundToDecimals(remainingUnits * currentPrice, 2)
+        const remainingGain = roundToDecimals((currentPrice - holding.averagePrice) * remainingUnits, 2)
+        const remainingGainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
 
         await tx.portfolioHolding.update({
           where: { id: holding.id },

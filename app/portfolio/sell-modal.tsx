@@ -3,9 +3,13 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { AssetSellSlider } from '@/components/ui/asset-sell-slider'
 import { X, TrendingDown, DollarSign } from 'lucide-react'
+
+// Utility function for consistent rounding
+const roundToDecimals = (value: number, decimals: number = 4): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
 
 interface Holding {
   id: string
@@ -32,30 +36,31 @@ interface SellModalProps {
 }
 
 export function SellModal({ holding, onClose, onSuccess }: SellModalProps) {
-  const [units, setUnits] = useState('')
+  const [units, setUnits] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const maxUnits = holding.units
-  const currentPrice = holding.product.currentPrice
-  const totalValue = units ? (parseFloat(units) * currentPrice) : 0
-  const gain = units ? ((currentPrice - holding.averagePrice) * parseFloat(units)) : 0
-  const gainPercent = units ? (((currentPrice - holding.averagePrice) / holding.averagePrice) * 100) : 0
+  const maxUnits = roundToDecimals(holding.units, 4)
+  const currentPrice = roundToDecimals(holding.product.currentPrice, 2)
+  const totalValue = roundToDecimals(units * currentPrice, 2)
+  const gain = roundToDecimals((currentPrice - holding.averagePrice) * units, 2)
+  const gainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
-    const sellUnits = parseFloat(units)
-    
-    if (sellUnits <= 0) {
+    if (units <= 0) {
       setError('Jumlah unit harus lebih dari 0')
       setLoading(false)
       return
     }
 
-    if (sellUnits > maxUnits) {
+    // Use a small tolerance for floating-point comparison
+    const tolerance = 0.0001
+    const roundedUnits = roundToDecimals(units, 4)
+    if (roundedUnits > (maxUnits + tolerance)) {
       setError(`Anda hanya memiliki ${maxUnits.toFixed(4)} unit`)
       setLoading(false)
       return
@@ -69,7 +74,7 @@ export function SellModal({ holding, onClose, onSuccess }: SellModalProps) {
         },
         body: JSON.stringify({
           productId: holding.productId,
-          units: sellUnits
+          units: roundedUnits
         })
       })
 
@@ -125,46 +130,13 @@ export function SellModal({ holding, onClose, onSuccess }: SellModalProps) {
               </div>
             </div>
 
-            {/* Units to Sell */}
-            <div className="space-y-2">
-              <Label htmlFor="units">Jumlah Unit yang Dijual</Label>
-              <Input
-                id="units"
-                type="number"
-                value={units}
-                onChange={(e) => setUnits(e.target.value)}
-                placeholder={`Maksimal ${maxUnits.toFixed(4)} unit`}
-                min="0.0001"
-                max={maxUnits}
-                step="0.0001"
-                required
-              />
-            </div>
-
-            {/* Calculation */}
-            {units && parseFloat(units) > 0 && (
-              <div className="bg-red-50 rounded-lg p-4 space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-900">Perhitungan Penjualan</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-red-700">Unit Dijual:</span>
-                  <span className="font-medium text-red-900">{parseFloat(units).toFixed(4)} unit</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-red-700">Total Penjualan:</span>
-                  <span className="font-medium text-red-900">Rp {totalValue.toLocaleString('id-ID')}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-red-700">Keuntungan:</span>
-                  <span className={`font-medium ${gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {gain >= 0 ? '+' : ''}Rp {gain.toLocaleString('id-ID')}
-                    ({gainPercent >= 0 ? '+' : ''}{gainPercent.toFixed(2)}%)
-                  </span>
-                </div>
-              </div>
-            )}
+            {/* Asset Sell Slider */}
+            <AssetSellSlider
+              maxUnits={maxUnits}
+              currentPrice={currentPrice}
+              averagePrice={holding.averagePrice}
+              onUnitsChange={setUnits}
+            />
 
             {/* Error Message */}
             {error && (
@@ -187,7 +159,7 @@ export function SellModal({ holding, onClose, onSuccess }: SellModalProps) {
               <Button
                 type="submit"
                 className="flex-1 bg-red-600 hover:bg-red-700"
-                disabled={loading || !units || parseFloat(units) <= 0}
+                disabled={loading || units <= 0}
               >
                 {loading ? 'Memproses...' : 'Jual'}
               </Button>

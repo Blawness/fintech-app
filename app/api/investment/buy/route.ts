@@ -3,6 +3,11 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Utility function for consistent rounding
+const roundToDecimals = (value: number, decimals: number = 4): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -18,6 +23,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
+    // Round amount to 2 decimal places for consistency
+    const roundedAmount = roundToDecimals(amount, 2)
+
     // Get product details
     const product = await prisma.investmentProduct.findUnique({
       where: { id: productId }
@@ -31,7 +39,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Product is not active' }, { status: 400 })
     }
 
-    if (amount < product.minInvestment) {
+    // Use tolerance for floating-point comparison
+    const tolerance = 0.01
+    if (roundedAmount < (product.minInvestment - tolerance)) {
       return NextResponse.json({ 
         error: `Minimum investment is Rp ${product.minInvestment.toLocaleString('id-ID')}` 
       }, { status: 400 })
@@ -54,15 +64,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has enough balance
-    if (amount > portfolio.rdnBalance) {
+    if (roundedAmount > (portfolio.rdnBalance + tolerance)) {
       return NextResponse.json({ 
         error: 'Insufficient balance' 
       }, { status: 400 })
     }
 
-    // Calculate units
-    const units = amount / product.currentPrice
-    const totalValue = amount
+    // Calculate units with consistent rounding
+    const units = roundToDecimals(roundedAmount / product.currentPrice, 4)
+    const totalValue = roundedAmount
 
     // Start transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -72,9 +82,9 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           productId: productId,
           type: 'BUY',
-          amount: amount,
+          amount: roundedAmount,
           units: units,
-          price: product.currentPrice,
+          price: roundToDecimals(product.currentPrice, 2),
           totalValue: totalValue,
           status: 'COMPLETED'
         }
@@ -84,8 +94,8 @@ export async function POST(request: NextRequest) {
       await tx.portfolio.update({
         where: { id: portfolio.id },
         data: {
-          rdnBalance: portfolio.rdnBalance - amount,
-          totalValue: portfolio.totalValue + totalValue
+          rdnBalance: roundToDecimals(portfolio.rdnBalance - roundedAmount, 2),
+          totalValue: roundToDecimals(portfolio.totalValue + totalValue, 2)
         }
       })
 

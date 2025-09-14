@@ -33,6 +33,7 @@ Welcome to the comprehensive documentation for FinEdu, a micro-learning platform
 | Document | Purpose | Key Topics |
 |----------|---------|------------|
 | **Styling Guide** | UI development | Components, themes, responsive |
+| **Chart Usage** | Trading charts | TradingView Lightweight Charts, data visualization |
 | **Debugging** | Problem solving | Issues, solutions, troubleshooting |
 
 ## 🔧 **Development Workflow**
@@ -61,21 +62,23 @@ npm run dev
 
 ```
 docs/
-├── README.md          # App overview & quick start
-├── index.md           # This index file
-├── quick-reference.md # Essential info & commands
-├── architecture.md    # System design & data flow
-├── api.md             # API endpoints & usage
-├── styling.md         # UI components & design
-└── debugging.md       # Troubleshooting guide
+├── README.md              # App overview & quick start
+├── index.md               # This index file
+├── quick-reference.md     # Essential info & commands
+├── architecture.md        # System design & data flow
+├── api.md                 # API endpoints & usage
+├── chart-usage.md         # TradingView Lightweight Charts usage
+├── chart-troubleshooting.md # Chart-specific troubleshooting
+├── styling.md             # UI components & design
+└── debugging.md           # General troubleshooting guide
 ```
 
 ## 🎯 **Key Information by Role**
 
 ### **Frontend Developer**
-- Primary: [Styling Guide](./styling.md), [Quick Reference](./quick-reference.md)
+- Primary: [Styling Guide](./styling.md), [Chart Usage](./chart-usage.md), [Quick Reference](./quick-reference.md)
 - Secondary: [Architecture](./architecture.md), [Debugging](./debugging.md)
-- Reference: Component usage patterns, styling conventions
+- Reference: Component usage patterns, styling conventions, chart implementation
 
 ### **Backend Developer**
 - Primary: [API Reference](./api.md), [Architecture](./architecture.md)
@@ -99,21 +102,26 @@ docs/
 - [Database Setup](./quick-reference.md#database-tables)
 - [API Endpoints](./api.md#api-endpoints)
 - [Component Usage](./styling.md#key-components-used)
+- [Chart Implementation](./chart-usage.md#implementation)
 
 ### **Common Issues**
 - [Database Connection](./debugging.md#database-connection-errors)
 - [Authentication](./debugging.md#authentication-issues)
 - [Build Errors](./debugging.md#build--runtime-errors)
 - [Styling Problems](./debugging.md#styling-problems)
+- [Chart Issues](./chart-troubleshooting.md#common-issues-and-solutions)
 
 ## 📊 **Feature Overview**
 
 ### **Core Features**
 1. **User Authentication** - Email/password with NextAuth.js
-2. **Daily Lessons** - Financial content in Indonesian
-3. **Interactive Quizzes** - Multiple choice with progress tracking
-4. **Progress Dashboard** - Streaks, scores, completion stats
-5. **Responsive Design** - Mobile-first with Tailwind CSS
+2. **Investment Products** - Real-time market simulation
+3. **Trading Charts** - Interactive price charts with TradingView Lightweight Charts
+4. **Portfolio Management** - Track investments and performance
+5. **Daily Lessons** - Financial content in Indonesian
+6. **Interactive Quizzes** - Multiple choice with progress tracking
+7. **Progress Dashboard** - Streaks, scores, completion stats
+8. **Responsive Design** - Mobile-first with Tailwind CSS
 
 ### **Technical Features**
 - **Type Safety** - Full TypeScript implementation
@@ -161,6 +169,7 @@ docs/
 - [ ] Use [Debugging](./debugging.md) for issues
 - [ ] Reference [API](./api.md) for backend work
 - [ ] Follow [Styling](./styling.md) for UI work
+- [ ] Learn [Chart Usage](./chart-usage.md) for trading charts
 
 **Happy coding! 🚀**
 

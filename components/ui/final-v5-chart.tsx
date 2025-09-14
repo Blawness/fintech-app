@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickData, CandlestickSeries, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface FinalV5ChartProps {
@@ -28,7 +28,7 @@ interface ChartData {
 const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
-  const lineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const candlestickSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [loading, setLoading] = useState(false)
@@ -160,22 +160,26 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
       chartRef.current = chart
 
       // Add line series using correct v5.0 API with LineSeries import
-      console.log('[FinalV5Chart] Adding line series...')
+      console.log('[FinalV5Chart] Adding candlestick series...')
       try {
-        // Use the correct v5.0 API with LineSeries import
-        const lineSeries = chart.addSeries(LineSeries, {
-          color: '#26a69a',
-          lineWidth: 2,
+        // Use the correct v5.0 API with CandlestickSeries
+        const candleSeries = chart.addSeries(CandlestickSeries, {
+          upColor: '#26a69a',
+          downColor: '#ef5350',
+          borderUpColor: '#26a69a',
+          borderDownColor: '#ef5350',
+          wickUpColor: '#26a69a',
+          wickDownColor: '#ef5350',
           priceLineVisible: true,
           lastValueVisible: true,
         })
         
-        console.log('[FinalV5Chart] Line series created successfully')
-        lineSeriesRef.current = lineSeries
+        console.log('[FinalV5Chart] Candlestick series created successfully')
+        candlestickSeriesRef.current = candleSeries
         
       } catch (lineError) {
-        console.error('[FinalV5Chart] Line series error:', lineError)
-        setError(`Failed to create line series: ${lineError instanceof Error ? lineError.message : 'Unknown error'}`)
+        console.error('[FinalV5Chart] Candlestick series error:', lineError)
+        setError(`Failed to create candlestick series: ${lineError instanceof Error ? lineError.message : 'Unknown error'}`)
         return
       }
 
@@ -206,11 +210,11 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
   // Update chart data
   const updateChart = useCallback(() => {
     console.log('[FinalV5Chart] === UPDATE CHART START ===')
-    console.log('[FinalV5Chart] lineSeriesRef.current:', lineSeriesRef.current)
+    console.log('[FinalV5Chart] candlestickSeriesRef.current:', candlestickSeriesRef.current)
     console.log('[FinalV5Chart] chartData.length:', chartData.length)
     
-    if (!lineSeriesRef.current) {
-      console.log('[FinalV5Chart] No line series available, cannot update')
+    if (!candlestickSeriesRef.current) {
+      console.log('[FinalV5Chart] No candlestick series available, cannot update')
       return
     }
     
@@ -246,14 +250,17 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
         return
       }
 
-      // Convert to line data format
-      const lineData: LineData[] = uniqueData.map(item => ({
-        time: item.time,
-        value: item.close
+      // Convert to candlestick data format
+      const candleData: CandlestickData[] = uniqueData.map(item => ({
+        time: item.time as Time,
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close,
       }))
 
-      // Update line data
-      lineSeriesRef.current.setData(lineData)
+      // Update candlestick data
+      candlestickSeriesRef.current.setData(candleData)
       
       console.log('[FinalV5Chart] Chart updated successfully')
       console.log('[FinalV5Chart] === UPDATE CHART COMPLETE ===')
@@ -270,14 +277,14 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
       try {
         chartRef.current.remove()
         chartRef.current = null
-        lineSeriesRef.current = null
+        candlestickSeriesRef.current = null
         setIsChartReady(false)
         console.log('[FinalV5Chart] Chart cleaned up')
       } catch (err) {
         console.error('[FinalV5Chart] Cleanup error (non-critical):', err)
         // Reset refs anyway
         chartRef.current = null
-        lineSeriesRef.current = null
+        candlestickSeriesRef.current = null
         setIsChartReady(false)
       }
     }
@@ -310,9 +317,9 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
     console.log('[FinalV5Chart] === DATA UPDATE EFFECT ===')
     console.log('[FinalV5Chart] isChartReady:', isChartReady)
     console.log('[FinalV5Chart] chartData.length:', chartData.length)
-    console.log('[FinalV5Chart] lineSeriesRef.current:', lineSeriesRef.current)
+    console.log('[FinalV5Chart] candlestickSeriesRef.current:', candlestickSeriesRef.current)
     
-    if (isChartReady && chartData.length > 0 && lineSeriesRef.current) {
+    if (isChartReady && chartData.length > 0 && candlestickSeriesRef.current) {
       console.log('[FinalV5Chart] Updating chart with new data...')
       updateChart()
     }
@@ -336,17 +343,6 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
       case 'AGRESIF': return <TrendingDown className="h-4 w-4" />
       default: return <BarChart3 className="h-4 w-4" />
     }
-  }
-
-  if (loading) {
-    return (
-      <div className={`flex items-center justify-center h-96 ${className}`}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading chart data...</p>
-        </div>
-      </div>
-    )
   }
 
   if (error) {
@@ -416,11 +412,12 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
             <button
               key={timeframe.value}
               onClick={() => setSelectedTimeframe(timeframe.value)}
+              disabled={loading}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedTimeframe === timeframe.value
                   ? 'bg-blue-600 text-white shadow-md transform scale-105'
                   : 'bg-white text-gray-700 hover:bg-gray-50 hover:shadow-sm border border-gray-200'
-              }`}
+              } ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
               {timeframe.label}
             </button>
@@ -457,11 +454,11 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
             maxHeight: '450px'
           }}
         >
-          {!isChartReady && (
+          {(!isChartReady || loading) && (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50 rounded-lg">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                <p className="text-gray-600 text-sm">Initializing chart...</p>
+                <p className="text-gray-600 text-sm">{!isChartReady ? 'Initializing chart...' : 'Loading chart data...'}</p>
               </div>
             </div>
           )}

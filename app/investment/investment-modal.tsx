@@ -3,11 +3,15 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { AssetBuySlider } from '@/components/ui/asset-buy-slider'
 import FinalV5Chart from '@/components/ui/final-v5-chart'
 import { SimpleChart } from '@/components/ui/simple-chart'
 import { X, DollarSign, TrendingUp, BarChart3, Wallet } from 'lucide-react'
+
+// Utility function for consistent rounding
+const roundToDecimals = (value: number, decimals: number = 4): number => {
+  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
+}
 
 interface Product {
   id: string
@@ -45,14 +49,14 @@ interface InvestmentModalProps {
 }
 
 export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess }: InvestmentModalProps) {
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState<'chart' | 'invest'>('chart')
 
-  const minAmount = product.minInvestment
-  const currentPrice = product.currentPrice
-  const units = amount ? (parseFloat(amount) / currentPrice) : 0
+  const minAmount = roundToDecimals(product.minInvestment, 2)
+  const currentPrice = roundToDecimals(product.currentPrice, 2)
+  const units = amount > 0 ? roundToDecimals(amount / currentPrice, 4) : 0
   const availableBalance = portfolio?.rdnBalance || 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,15 +64,17 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
     setLoading(true)
     setError('')
 
-    const investmentAmount = parseFloat(amount)
+    // Use tolerance for floating-point comparison
+    const tolerance = 0.01
+    const roundedAmount = roundToDecimals(amount, 2)
     
-    if (investmentAmount < minAmount) {
+    if (roundedAmount < (minAmount - tolerance)) {
       setError(`Minimum investasi adalah Rp ${minAmount.toLocaleString('id-ID')}`)
       setLoading(false)
       return
     }
 
-    if (investmentAmount > availableBalance) {
+    if (roundedAmount > (availableBalance + tolerance)) {
       setError(`Saldo tidak mencukupi. Saldo tersedia: Rp ${availableBalance.toLocaleString('id-ID')}`)
       setLoading(false)
       return
@@ -82,7 +88,7 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
         },
         body: JSON.stringify({
           productId: product.id,
-          amount: investmentAmount
+          amount: roundedAmount
         })
       })
 
@@ -252,41 +258,14 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
               </div>
             </div>
 
-            {/* Investment Amount */}
-            <div className="space-y-2">
-              <Label htmlFor="amount">Jumlah Investasi (Rp)</Label>
-              <Input
-                id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder={`Minimum Rp ${minAmount.toLocaleString('id-ID')}`}
-                min={minAmount}
-                    step="1"
-                required
-                    className="text-lg"
-              />
-            </div>
-
-            {/* Calculation */}
-            {amount && parseFloat(amount) >= minAmount && (
-                  <div className="bg-blue-50 rounded-lg p-4 space-y-3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TrendingUp className="h-5 w-5 text-blue-600" />
-                      <span className="font-medium text-blue-900">Perhitungan Investasi</span>
-                </div>
-                    <div className="grid grid-cols-2 gap-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Jumlah Unit:</span>
-                  <span className="font-medium text-blue-900">{units.toFixed(4)} unit</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-blue-700">Total Investasi:</span>
-                  <span className="font-medium text-blue-900">Rp {parseFloat(amount).toLocaleString('id-ID')}</span>
-                      </div>
-                </div>
-              </div>
-            )}
+            {/* Asset Buy Slider */}
+            <AssetBuySlider
+              currentPrice={currentPrice}
+              minInvestment={minAmount}
+              maxInvestment={availableBalance}
+              availableBalance={availableBalance}
+              onAmountChange={setAmount}
+            />
 
             {/* Available Balance */}
                 <div className="bg-gray-50 rounded-lg p-4">
@@ -330,7 +309,7 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
               <Button
                 type="submit"
                 className="flex-1 bg-green-600 hover:bg-green-700"
-                disabled={loading || !amount || parseFloat(amount) < minAmount}
+                disabled={loading || amount < (minAmount - 0.01)}
               >
                     {loading ? 'Memproses...' : 'Investasi Sekarang'}
               </Button>

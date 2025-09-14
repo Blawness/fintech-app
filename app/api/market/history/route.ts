@@ -63,26 +63,26 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // If no history data, create some sample data based on current price
-    if (chartData.length === 0) {
+    // Ensure at least 2 data points; if insufficient DB data, synthesize
+    if (chartData.length < 2) {
       const currentPrice = product.currentPrice
       const sampleData = []
       const now = Math.floor(Date.now() / 1000)
-      
-      // Generate sample data points (every 5 minutes for the last 24 hours)
-      const dataPoints = Math.min(limit, 288) // 288 = 24 hours * 12 (5-min intervals)
-      
+
+      // Generate sample data points (every 5 minutes) for the requested hours
+      const dataPoints = Math.min(limit, Math.max(2, hours * 12)) // 12 points/hour at 5-min intervals
+
       for (let i = dataPoints - 1; i >= 0; i--) {
         const time = now - (i * 300) // Every 5 minutes (300 seconds)
         const priceVariation = (Math.random() - 0.5) * 0.02 // ±1% variation
         const basePrice = currentPrice * (1 + priceVariation)
-        
+
         // Create realistic OHLC data
         const open = basePrice + (Math.random() - 0.5) * basePrice * 0.001
         const close = basePrice + (Math.random() - 0.5) * basePrice * 0.001
         const high = Math.max(open, close) + Math.random() * basePrice * 0.001
         const low = Math.min(open, close) - Math.random() * basePrice * 0.001
-        
+
         sampleData.push({
           time,
           open,
@@ -92,8 +92,9 @@ export async function GET(request: NextRequest) {
           volume: Math.random() * 1000 + 100
         })
       }
-      
-      chartData.push(...sampleData)
+
+      // Replace with synthesized data to guarantee a visible line
+      chartData.splice(0, chartData.length, ...sampleData)
     }
 
     return NextResponse.json({
