@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import MinimalWorkingChart from '@/components/ui/minimal-working-chart'
+import FinalV5Chart from '@/components/ui/final-v5-chart'
 import { SimpleChart } from '@/components/ui/simple-chart'
 import { X, DollarSign, TrendingUp, BarChart3, Wallet } from 'lucide-react'
 
@@ -152,7 +152,7 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
             {activeTab === 'chart' && (
               <div className="space-y-6">
                 {/* Trading Chart */}
-                      <MinimalWorkingChart product={product} />
+                      <FinalV5Chart product={product} />
                 
                 {/* Product Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

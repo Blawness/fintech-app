@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineData, HistogramData } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
-interface MinimalWorkingChartProps {
+interface WorkingV5ChartProps {
   product: {
     id: string
     name: string
@@ -25,10 +25,11 @@ interface ChartData {
   volume: number
 }
 
-const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, className = '' }) => {
+const WorkingV5Chart: React.FC<WorkingV5ChartProps> = ({ product, className = '' }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const lineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const histogramSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null)
   
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [loading, setLoading] = useState(false)
@@ -64,7 +65,7 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
     setError(null)
     
     try {
-      console.log(`[MinimalChart] Fetching data for ${product.name}, hours: ${hours}`)
+      console.log(`[WorkingV5Chart] Fetching data for ${product.name}, hours: ${hours}`)
       
       const response = await fetch(`/api/market/history?productId=${product.id}&hours=${hours}&limit=100`)
       
@@ -78,36 +79,58 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
         throw new Error(result.error || 'API returned error')
       }
       
-      console.log(`[MinimalChart] Data received:`, result.data.chartData.length, 'points')
+      console.log(`[WorkingV5Chart] Data received:`, result.data.chartData.length, 'points')
       setChartData(result.data.chartData)
       
     } catch (err) {
-      console.error('[MinimalChart] Fetch error:', err)
+      console.error('[WorkingV5Chart] Fetch error:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch data')
     } finally {
       setLoading(false)
     }
   }, [product.id])
 
-  // Initialize chart - minimal and safe
-  const initializeChart = useCallback(() => {
-    console.log('[MinimalChart] === INITIALIZE START ===')
-    
-    if (!chartContainerRef.current) {
-      console.error('[MinimalChart] No container found')
-      return
-    }
+  // Wait for container to be ready
+  const waitForContainer = useCallback((): Promise<HTMLDivElement> => {
+    return new Promise((resolve, reject) => {
+      let attempts = 0
+      const maxAttempts = 20
+      const checkInterval = 50
 
+      const checkContainer = () => {
+        attempts++
+        console.log(`[WorkingV5Chart] Container check attempt ${attempts}/${maxAttempts}`)
+        
+        if (chartContainerRef.current) {
+          console.log('[WorkingV5Chart] Container found!')
+          resolve(chartContainerRef.current)
+        } else if (attempts >= maxAttempts) {
+          console.error('[WorkingV5Chart] Container not found after max attempts')
+          reject(new Error('Container not found after maximum attempts'))
+        } else {
+          console.log('[WorkingV5Chart] Container not ready, retrying...')
+          setTimeout(checkContainer, checkInterval)
+        }
+      }
+
+      checkContainer()
+    })
+  }, [])
+
+  // Initialize chart with correct v5.0 API and container waiting
+  const initializeChart = useCallback(async () => {
+    console.log('[WorkingV5Chart] === INITIALIZE START ===')
+    
     if (chartRef.current) {
-      console.log('[MinimalChart] Chart already exists, skipping')
+      console.log('[WorkingV5Chart] Chart already exists, skipping')
       return
     }
 
     try {
-      const container = chartContainerRef.current
+      // Wait for container to be ready
+      const container = await waitForContainer()
       
-      // Minimal chart creation - no DOM manipulation
-      console.log('[MinimalChart] Creating chart...')
+      console.log('[WorkingV5Chart] Creating chart...')
       
       const chart = createChart(container, {
         layout: {
@@ -134,20 +157,47 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
         },
       })
 
-      console.log('[MinimalChart] Chart created successfully')
+      console.log('[WorkingV5Chart] Chart created successfully')
       chartRef.current = chart
 
-      // Add line series using correct v5.0 API
-      console.log('[MinimalChart] Adding line series...')
-      const lineSeries = chart.addSeries(LineSeries, {
-        color: '#26a69a',
-        lineWidth: 2,
-        priceLineVisible: true,
-        lastValueVisible: true,
-      })
-      
-      console.log('[MinimalChart] Line series created successfully')
-      lineSeriesRef.current = lineSeries
+      // Add line series using correct v5.0 API - based on documentation
+      console.log('[WorkingV5Chart] Adding line series...')
+      try {
+        const lineSeries = chart.addSeries('Line', {
+          color: '#26a69a',
+          lineWidth: 2,
+          priceLineVisible: true,
+          lastValueVisible: true,
+        })
+        
+        console.log('[WorkingV5Chart] Line series created successfully')
+        lineSeriesRef.current = lineSeries
+      } catch (lineError) {
+        console.error('[WorkingV5Chart] Line series error:', lineError)
+        // Try alternative approach
+        const lineSeries = chart.addSeries('Line')
+        lineSeriesRef.current = lineSeries
+      }
+
+      // Add histogram series for volume
+      console.log('[WorkingV5Chart] Adding histogram series...')
+      try {
+        const histogramSeries = chart.addSeries('Histogram', {
+          color: '#26a69a',
+          priceFormat: {
+            type: 'volume',
+          },
+          priceScaleId: '',
+        })
+        
+        console.log('[WorkingV5Chart] Histogram series created successfully')
+        histogramSeriesRef.current = histogramSeries
+      } catch (histogramError) {
+        console.error('[WorkingV5Chart] Histogram series error:', histogramError)
+        // Try alternative approach
+        const histogramSeries = chart.addSeries('Histogram')
+        histogramSeriesRef.current = histogramSeries
+      }
 
       // Handle resize safely
       const handleResize = () => {
@@ -157,7 +207,7 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
               width: chartContainerRef.current.clientWidth,
             })
           } catch (resizeError) {
-            console.warn('[MinimalChart] Resize warning:', resizeError)
+            console.warn('[WorkingV5Chart] Resize warning:', resizeError)
           }
         }
       }
@@ -165,32 +215,32 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
       window.addEventListener('resize', handleResize)
 
       setIsChartReady(true)
-      console.log('[MinimalChart] === INITIALIZE COMPLETE ===')
+      console.log('[WorkingV5Chart] === INITIALIZE COMPLETE ===')
 
     } catch (err) {
-      console.error('[MinimalChart] Initialize error:', err)
+      console.error('[WorkingV5Chart] Initialize error:', err)
       setError(`Chart initialization failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
-  }, [])
+  }, [waitForContainer])
 
   // Update chart data
   const updateChart = useCallback(() => {
-    console.log('[MinimalChart] === UPDATE CHART START ===')
-    console.log('[MinimalChart] lineSeriesRef.current:', lineSeriesRef.current)
-    console.log('[MinimalChart] chartData.length:', chartData.length)
+    console.log('[WorkingV5Chart] === UPDATE CHART START ===')
+    console.log('[WorkingV5Chart] lineSeriesRef.current:', lineSeriesRef.current)
+    console.log('[WorkingV5Chart] chartData.length:', chartData.length)
     
-    if (!lineSeriesRef.current) {
-      console.log('[MinimalChart] No line series available, cannot update')
+    if (!lineSeriesRef.current || !histogramSeriesRef.current) {
+      console.log('[WorkingV5Chart] No series available, cannot update')
       return
     }
     
     if (chartData.length === 0) {
-      console.log('[MinimalChart] No data available, cannot update')
+      console.log('[WorkingV5Chart] No data available, cannot update')
       return
     }
 
     try {
-      console.log('[MinimalChart] Updating chart with', chartData.length, 'data points')
+      console.log('[WorkingV5Chart] Updating chart with', chartData.length, 'data points')
 
       // Sort and validate data
       const sortedData = [...chartData].sort((a, b) => a.time - b.time)
@@ -209,10 +259,10 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
         }
       }
 
-      console.log('[MinimalChart] Valid data points:', uniqueData.length)
+      console.log('[WorkingV5Chart] Valid data points:', uniqueData.length)
 
       if (uniqueData.length === 0) {
-        console.warn('[MinimalChart] No valid data to display')
+        console.warn('[WorkingV5Chart] No valid data to display')
         return
       }
 
@@ -222,49 +272,52 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
         value: item.close
       }))
 
+      // Convert to histogram data format
+      const histogramData: HistogramData[] = uniqueData.map(item => ({
+        time: item.time,
+        value: item.volume,
+        color: item.close >= item.open ? '#26a69a' : '#ef5350'
+      }))
+
       // Update line data
       lineSeriesRef.current.setData(lineData)
       
-      console.log('[MinimalChart] Chart updated successfully')
-      console.log('[MinimalChart] === UPDATE CHART COMPLETE ===')
+      // Update histogram data
+      histogramSeriesRef.current.setData(histogramData)
+      
+      console.log('[WorkingV5Chart] Chart updated successfully')
+      console.log('[WorkingV5Chart] === UPDATE CHART COMPLETE ===')
       
     } catch (err) {
-      console.error('[MinimalChart] Update error:', err)
+      console.error('[WorkingV5Chart] Update error:', err)
       setError(`Chart update failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
   }, [chartData])
 
-  // Cleanup chart - minimal and safe
+  // Cleanup chart
   const cleanupChart = useCallback(() => {
     if (chartRef.current) {
       try {
         chartRef.current.remove()
         chartRef.current = null
         lineSeriesRef.current = null
+        histogramSeriesRef.current = null
         setIsChartReady(false)
-        console.log('[MinimalChart] Chart cleaned up')
+        console.log('[WorkingV5Chart] Chart cleaned up')
       } catch (err) {
-        console.error('[MinimalChart] Cleanup error (non-critical):', err)
+        console.error('[WorkingV5Chart] Cleanup error (non-critical):', err)
         // Reset refs anyway
         chartRef.current = null
         lineSeriesRef.current = null
+        histogramSeriesRef.current = null
         setIsChartReady(false)
       }
     }
   }, [])
 
-  // Re-initialize chart if needed
-  const reinitializeChart = useCallback(() => {
-    console.log('[MinimalChart] Re-initializing chart...')
-    cleanupChart()
-    setTimeout(() => {
-      initializeChart()
-    }, 200)
-  }, [cleanupChart, initializeChart])
-
   // Initialize chart on mount
   useEffect(() => {
-    console.log('[MinimalChart] === MOUNT EFFECT ===')
+    console.log('[WorkingV5Chart] === MOUNT EFFECT ===')
     
     // Initialize chart after a delay
     const timer = setTimeout(() => {
@@ -279,29 +332,23 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
 
   // Fetch data when timeframe changes
   useEffect(() => {
-    console.log('[MinimalChart] Timeframe changed to:', selectedTimeframe)
+    console.log('[WorkingV5Chart] Timeframe changed to:', selectedTimeframe)
     const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
     fetchChartData(hours)
   }, [selectedTimeframe, fetchChartData])
 
   // Update chart when data changes
   useEffect(() => {
-    console.log('[MinimalChart] === DATA UPDATE EFFECT ===')
-    console.log('[MinimalChart] isChartReady:', isChartReady)
-    console.log('[MinimalChart] chartData.length:', chartData.length)
-    console.log('[MinimalChart] lineSeriesRef.current:', lineSeriesRef.current)
+    console.log('[WorkingV5Chart] === DATA UPDATE EFFECT ===')
+    console.log('[WorkingV5Chart] isChartReady:', isChartReady)
+    console.log('[WorkingV5Chart] chartData.length:', chartData.length)
+    console.log('[WorkingV5Chart] lineSeriesRef.current:', lineSeriesRef.current)
     
     if (isChartReady && chartData.length > 0 && lineSeriesRef.current) {
-      console.log('[MinimalChart] Updating chart with new data...')
+      console.log('[WorkingV5Chart] Updating chart with new data...')
       updateChart()
-    } else if (isChartReady && chartData.length > 0 && !lineSeriesRef.current) {
-      console.log('[MinimalChart] Chart ready but no line series, re-initializing...')
-      reinitializeChart()
-    } else if (!isChartReady && chartData.length > 0) {
-      console.log('[MinimalChart] Chart not ready but data available, initializing...')
-      initializeChart()
     }
-  }, [chartData, isChartReady, updateChart, initializeChart, reinitializeChart])
+  }, [chartData, isChartReady, updateChart])
 
   // Get risk color
   const getRiskColor = (riskLevel: string) => {
@@ -415,13 +462,12 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
           {process.env.NODE_ENV === 'development' && (
             <button
               onClick={() => {
-                console.log('[MinimalChart] Manual update triggered')
-                if (chartData.length > 0 && lineSeriesRef.current) {
+                console.log('[WorkingV5Chart] Manual update triggered')
+                if (chartData.length > 0) {
                   updateChart()
                 } else {
                   const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
                   fetchChartData(hours)
-                  reinitializeChart()
                 }
               }}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border border-yellow-300"
@@ -485,4 +531,4 @@ const MinimalWorkingChart: React.FC<MinimalWorkingChartProps> = ({ product, clas
   )
 }
 
-export default MinimalWorkingChart
+export default WorkingV5Chart
