@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, BarSeries, HistogramSeries } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3, Activity } from 'lucide-react'
 
 interface ChartData {
@@ -11,6 +11,14 @@ interface ChartData {
   low: number
   close: number
   volume: number
+}
+
+interface BarData {
+  time: number
+  open: number
+  high: number
+  low: number
+  close: number
 }
 
 interface Product {
@@ -52,10 +60,15 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
       setLoading(true)
       setError(null)
       
+      console.log('Fetching chart data for product:', product.id, 'hours:', hours)
+      
       const response = await fetch(`/api/market/history?productId=${product.id}&hours=${hours}&limit=100`)
       const data = await response.json()
       
+      console.log('Chart data response:', data)
+      
       if (data.success) {
+        console.log('Chart data received:', data.data.chartData.length, 'points')
         setChartData(data.data.chartData)
         
         // Calculate price change
@@ -67,6 +80,7 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
           setPriceChange({ change, changePercent })
         }
       } else {
+        console.error('Chart data error:', data.error)
         setError(data.error || 'Failed to fetch chart data')
       }
     } catch (err) {
@@ -78,14 +92,34 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
   }
 
   const initializeChart = () => {
-    if (!chartContainerRef.current) return
+    if (!chartContainerRef.current) {
+      console.error('Chart container not found')
+      return
+    }
 
-    const chart = createChart(chartContainerRef.current, {
+    // Clean up any existing chart first
+    if (chartRef.current) {
+      console.log('Cleaning up existing chart')
+      cleanupChart()
+    }
+
+    console.log('Initializing chart...')
+    
+    // Ensure container has proper dimensions
+    const container = chartContainerRef.current
+    container.style.width = '100%'
+    container.style.height = '400px'
+    container.style.minHeight = '400px'
+    container.innerHTML = '' // Clear any existing content
+
+    console.log('Container dimensions:', container.clientWidth, container.clientHeight)
+
+    const chart = createChart(container, {
       layout: {
         background: { type: ColorType.Solid, color: '#ffffff' },
         textColor: '#333333',
       },
-      width: chartContainerRef.current.clientWidth,
+      width: container.clientWidth || 800,
       height: 400,
       grid: {
         vertLines: { color: '#f0f0f0' },
@@ -96,32 +130,65 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
       },
       rightPriceScale: {
         borderColor: '#cccccc',
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
+        drawTicks: true,
+        drawLabels: true,
+        tickMarkFormatter: (price: number) => {
+          return `Rp ${price.toLocaleString('id-ID')}`
+        },
       },
       timeScale: {
         borderColor: '#cccccc',
         timeVisible: true,
         secondsVisible: false,
+        drawTicks: true,
+        drawLabels: true,
+        tickMarkFormatter: (time: any, tickMarkType: any, locale: string) => {
+          const date = new Date(time * 1000)
+          return date.toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })
+        },
       },
     })
 
-    // Create candlestick series
-    const candlestickSeries = chart.addCandlestickSeries({
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderDownColor: '#ef5350',
-      borderUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
-      wickUpColor: '#26a69a',
-    })
+    console.log('Chart object created successfully')
 
-    // Create volume series
-    const volumeSeries = chart.addHistogramSeries({
-      color: '#26a69a',
-      priceFormat: {
-        type: 'volume',
-      },
-      priceScaleId: 'volume',
-    })
+    let candlestickSeries, volumeSeries
+
+    try {
+      // Create candlestick series (using addSeries with BarSeries in v5+)
+      candlestickSeries = chart.addSeries(BarSeries, {
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderDownColor: '#ef5350',
+        borderUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+        wickUpColor: '#26a69a',
+      })
+
+      // Create volume series (using addSeries with HistogramSeries in v5+)
+      volumeSeries = chart.addSeries(HistogramSeries, {
+        color: '#26a69a',
+        priceFormat: {
+          type: 'volume',
+        },
+        overlay: true,
+        scaleMargins: {
+          top: 0.8,
+          bottom: 0,
+        },
+      })
+
+      console.log('Chart series created successfully')
+    } catch (error) {
+      console.error('Error creating chart series:', error)
+      throw error
+    }
 
     chartRef.current = chart
     candlestickSeriesRef.current = candlestickSeries
@@ -129,8 +196,8 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
 
     // Handle resize
     const handleResize = () => {
-      if (chartContainerRef.current) {
-        chart.applyOptions({ 
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ 
           width: chartContainerRef.current.clientWidth 
         })
       }
@@ -140,36 +207,108 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
 
     return () => {
       window.removeEventListener('resize', handleResize)
-      chart.remove()
+      if (chartRef.current) {
+        chartRef.current.remove()
+        chartRef.current = null
+      }
     }
   }
 
   const updateChart = () => {
-    if (!candlestickSeriesRef.current || !volumeSeriesRef.current) return
+    if (!candlestickSeriesRef.current || !volumeSeriesRef.current) {
+      console.log('Chart series not ready yet')
+      return
+    }
+
+    if (chartData.length === 0) {
+      console.log('No chart data to display')
+      return
+    }
+
+    console.log('Updating chart with data:', chartData.length, 'points')
+
+    // Sort data by time in ascending order (required by TradingView)
+    const sortedData = [...chartData].sort((a, b) => a.time - b.time)
+    
+    // Remove duplicate timestamps and validate data
+    const uniqueData = []
+    const seenTimes = new Set()
+    
+    for (const item of sortedData) {
+      if (!seenTimes.has(item.time) && 
+          typeof item.time === 'number' && 
+          item.time > 0 &&
+          typeof item.open === 'number' &&
+          typeof item.high === 'number' &&
+          typeof item.low === 'number' &&
+          typeof item.close === 'number') {
+        seenTimes.add(item.time)
+        uniqueData.push(item)
+      }
+    }
+
+    console.log('Sorted data points:', uniqueData.length)
+
+    // Convert to bar data format for v5+
+    const barData: BarData[] = uniqueData.map(item => ({
+      time: item.time,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close
+    }))
 
     // Update candlestick data
-    candlestickSeriesRef.current.setData(chartData)
+    try {
+      candlestickSeriesRef.current.setData(barData)
+      console.log('Candlestick data updated successfully')
+    } catch (error) {
+      console.error('Error updating candlestick data:', error)
+      return
+    }
 
     // Update volume data
-    const volumeData = chartData.map(item => ({
+    const volumeData = uniqueData.map(item => ({
       time: item.time,
       value: item.volume,
       color: item.close >= item.open ? '#26a69a' : '#ef5350'
     }))
-    volumeSeriesRef.current.setData(volumeData)
+    
+    try {
+      volumeSeriesRef.current.setData(volumeData)
+      console.log('Volume data updated successfully')
+    } catch (error) {
+      console.error('Error updating volume data:', error)
+    }
+    
+    console.log('Chart updated successfully')
   }
 
   useEffect(() => {
-    const cleanup = initializeChart()
-    return cleanup
-  }, [])
+    // Initialize chart after a small delay to ensure container is ready
+    const timer = setTimeout(() => {
+      if (chartContainerRef.current && !chartRef.current) {
+        console.log('Initializing chart for product:', product.id)
+        initializeChart()
+      }
+    }, 200)
+
+    return () => {
+      clearTimeout(timer)
+      cleanupChart()
+    }
+  }, [product.id])
 
   useEffect(() => {
-    updateChart()
+    if (chartData.length > 0 && chartRef.current && candlestickSeriesRef.current && volumeSeriesRef.current) {
+      console.log('Chart data updated, updating chart...')
+      updateChart()
+    }
   }, [chartData])
 
   useEffect(() => {
     const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
+    console.log('Timeframe changed to:', selectedTimeframe, 'hours:', hours)
     fetchChartData(hours)
   }, [selectedTimeframe, product.id])
 
@@ -208,11 +347,34 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
         <div className="text-center">
           <div className="text-red-500 mb-4">⚠️</div>
           <p className="text-red-600">{error}</p>
+          <p className="text-sm text-gray-500 mt-2">Product: {product.name}</p>
+          <button 
+            onClick={() => {
+              const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
+              fetchChartData(hours)
+            }}
+            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Show fallback if no chart data and not loading
+  if (!loading && chartData.length === 0) {
+    return (
+      <div className={`flex items-center justify-center h-96 ${className}`}>
+        <div className="text-center">
+          <div className="text-gray-500 mb-4">📊</div>
+          <p className="text-gray-600">No chart data available</p>
+          <p className="text-sm text-gray-500 mt-2">Product: {product.name}</p>
           <button 
             onClick={() => fetchChartData()}
             className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
-            Retry
+            Load Chart
           </button>
         </div>
       </div>
@@ -266,34 +428,43 @@ export function TradingChart({ product, className = '' }: TradingChartProps) {
       </div>
 
       {/* Chart Container */}
-      <div className="p-4">
-        <div ref={chartContainerRef} className="w-full" style={{ height: '400px' }} />
+      <div className="p-6">
+        <div 
+          ref={chartContainerRef} 
+          className="w-full border border-gray-200 rounded-lg overflow-hidden shadow-sm" 
+          style={{ 
+            height: '450px', 
+            minHeight: '450px',
+            width: '100%'
+          }} 
+        />
         
         {/* Chart Info */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <div className="text-gray-600">24H High</div>
-            <div className="font-semibold">
-              Rp {Math.max(...chartData.map(d => d.high)).toLocaleString('id-ID')}
+        <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="text-center p-3 bg-gray-50 rounded-lg border">
+            <div className="text-gray-600 text-xs mb-1">24H High</div>
+            <div className="font-semibold text-sm">
+              Rp {chartData.length > 0 ? Math.max(...chartData.map(d => d.high)).toLocaleString('id-ID') : 'N/A'}
             </div>
           </div>
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <div className="text-gray-600">24H Low</div>
-            <div className="font-semibold">
-              Rp {Math.min(...chartData.map(d => d.low)).toLocaleString('id-ID')}
+          <div className="text-center p-3 bg-gray-50 rounded-lg border">
+            <div className="text-gray-600 text-xs mb-1">24H Low</div>
+            <div className="font-semibold text-sm">
+              Rp {chartData.length > 0 ? Math.min(...chartData.map(d => d.low)).toLocaleString('id-ID') : 'N/A'}
             </div>
           </div>
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <div className="text-gray-600">Volume</div>
-            <div className="font-semibold">
-              {chartData.reduce((sum, d) => sum + d.volume, 0).toFixed(0)}
+          <div className="text-center p-3 bg-gray-50 rounded-lg border">
+            <div className="text-gray-600 text-xs mb-1">Volume</div>
+            <div className="font-semibold text-sm">
+              {chartData.length > 0 ? chartData.reduce((sum, d) => sum + d.volume, 0).toFixed(0) : 'N/A'}
             </div>
           </div>
-          <div className="text-center p-2 bg-gray-50 rounded">
-            <div className="text-gray-600">Data Points</div>
-            <div className="font-semibold">{chartData.length}</div>
+          <div className="text-center p-3 bg-gray-50 rounded-lg border">
+            <div className="text-gray-600 text-xs mb-1">Data Points</div>
+            <div className="font-semibold text-sm">{chartData.length}</div>
           </div>
         </div>
+
       </div>
     </div>
   )

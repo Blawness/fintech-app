@@ -41,14 +41,27 @@ export async function GET(request: NextRequest) {
     }
 
     // Format data for TradingView charts
-    const chartData = priceHistory.map(entry => ({
-      time: Math.floor(entry.timestamp.getTime() / 1000), // Convert to Unix timestamp
-      open: entry.price,
-      high: entry.price * 1.001, // Simulate OHLC data
-      low: entry.price * 0.999,
-      close: entry.price,
-      volume: Math.random() * 1000 // Simulate volume data
-    }))
+    const chartData = priceHistory.map((entry, index) => {
+      // Ensure unique timestamps by adding index seconds
+      const baseTime = Math.floor(entry.timestamp.getTime() / 1000)
+      const time = baseTime + index // Add index to ensure unique timestamps
+      
+      // Create more realistic OHLC data
+      const priceVariation = entry.price * 0.001 // 0.1% variation
+      const open = entry.price + (Math.random() - 0.5) * priceVariation
+      const close = entry.price + (Math.random() - 0.5) * priceVariation
+      const high = Math.max(open, close) + Math.random() * priceVariation
+      const low = Math.min(open, close) - Math.random() * priceVariation
+      
+      return {
+        time,
+        open,
+        high,
+        low,
+        close,
+        volume: Math.random() * 1000 + 100 // Simulate volume data
+      }
+    })
 
     // If no history data, create some sample data based on current price
     if (chartData.length === 0) {
@@ -56,19 +69,27 @@ export async function GET(request: NextRequest) {
       const sampleData = []
       const now = Math.floor(Date.now() / 1000)
       
-      // Generate 24 hours of sample data
-      for (let i = 23; i >= 0; i--) {
-        const time = now - (i * 3600) // Every hour
+      // Generate sample data points (every 5 minutes for the last 24 hours)
+      const dataPoints = Math.min(limit, 288) // 288 = 24 hours * 12 (5-min intervals)
+      
+      for (let i = dataPoints - 1; i >= 0; i--) {
+        const time = now - (i * 300) // Every 5 minutes (300 seconds)
         const priceVariation = (Math.random() - 0.5) * 0.02 // ±1% variation
-        const price = currentPrice * (1 + priceVariation)
+        const basePrice = currentPrice * (1 + priceVariation)
+        
+        // Create realistic OHLC data
+        const open = basePrice + (Math.random() - 0.5) * basePrice * 0.001
+        const close = basePrice + (Math.random() - 0.5) * basePrice * 0.001
+        const high = Math.max(open, close) + Math.random() * basePrice * 0.001
+        const low = Math.min(open, close) - Math.random() * basePrice * 0.001
         
         sampleData.push({
           time,
-          open: price,
-          high: price * 1.001,
-          low: price * 0.999,
-          close: price,
-          volume: Math.random() * 1000
+          open,
+          high,
+          low,
+          close,
+          volume: Math.random() * 1000 + 100
         })
       }
       

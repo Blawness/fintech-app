@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { TradingChart } from '@/components/ui/trading-chart'
+import MinimalWorkingChart from '@/components/ui/minimal-working-chart'
+import { SimpleChart } from '@/components/ui/simple-chart'
 import { X, DollarSign, TrendingUp, BarChart3, Wallet } from 'lucide-react'
 
 interface Product {
@@ -151,7 +152,7 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
             {activeTab === 'chart' && (
               <div className="space-y-6">
                 {/* Trading Chart */}
-                <TradingChart product={product} />
+                      <MinimalWorkingChart product={product} />
                 
                 {/* Product Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -232,80 +233,80 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-medium text-gray-900 mb-3">Ringkasan Produk</h4>
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex justify-between">
+              <div className="flex justify-between">
                       <span className="text-gray-600">Harga per Unit:</span>
-                      <span className="font-medium">Rp {currentPrice.toLocaleString('id-ID')}</span>
-                    </div>
-                    <div className="flex justify-between">
+                <span className="font-medium">Rp {currentPrice.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="flex justify-between">
                       <span className="text-gray-600">Expected Return:</span>
-                      <span className="font-medium text-green-600">+{product.expectedReturn}%</span>
-                    </div>
-                    <div className="flex justify-between">
+                <span className="font-medium text-green-600">+{product.expectedReturn}%</span>
+              </div>
+              <div className="flex justify-between">
                       <span className="text-gray-600">Min. Investasi:</span>
-                      <span className="font-medium">Rp {minAmount.toLocaleString('id-ID')}</span>
+                <span className="font-medium">Rp {minAmount.toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Tingkat Risiko:</span>
                       <span className="font-medium">{product.riskLevel}</span>
                     </div>
-                  </div>
-                </div>
+              </div>
+            </div>
 
-                {/* Investment Amount */}
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Jumlah Investasi (Rp)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder={`Minimum Rp ${minAmount.toLocaleString('id-ID')}`}
-                    min={minAmount}
+            {/* Investment Amount */}
+            <div className="space-y-2">
+              <Label htmlFor="amount">Jumlah Investasi (Rp)</Label>
+              <Input
+                id="amount"
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder={`Minimum Rp ${minAmount.toLocaleString('id-ID')}`}
+                min={minAmount}
                     step="1"
-                    required
+                required
                     className="text-lg"
-                  />
-                </div>
+              />
+            </div>
 
-                {/* Calculation */}
-                {amount && parseFloat(amount) >= minAmount && (
+            {/* Calculation */}
+            {amount && parseFloat(amount) >= minAmount && (
                   <div className="bg-blue-50 rounded-lg p-4 space-y-3">
                     <div className="flex items-center gap-2 mb-3">
                       <TrendingUp className="h-5 w-5 text-blue-600" />
                       <span className="font-medium text-blue-900">Perhitungan Investasi</span>
-                    </div>
+                </div>
                     <div className="grid grid-cols-2 gap-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-700">Jumlah Unit:</span>
-                        <span className="font-medium text-blue-900">{units.toFixed(4)} unit</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-blue-700">Jumlah Unit:</span>
+                  <span className="font-medium text-blue-900">{units.toFixed(4)} unit</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-blue-700">Total Investasi:</span>
+                  <span className="font-medium text-blue-900">Rp {parseFloat(amount).toLocaleString('id-ID')}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-blue-700">Total Investasi:</span>
-                        <span className="font-medium text-blue-900">Rp {parseFloat(amount).toLocaleString('id-ID')}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                </div>
+              </div>
+            )}
 
-                {/* Available Balance */}
+            {/* Available Balance */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-5 w-5 text-gray-600" />
                     <span className="font-medium text-gray-700">Saldo Tersedia</span>
-                  </div>
+              </div>
                   <div className="text-2xl font-bold text-gray-900">
-                    Rp {availableBalance.toLocaleString('id-ID')}
-                  </div>
-                </div>
+                Rp {availableBalance.toLocaleString('id-ID')}
+              </div>
+            </div>
 
-                {/* Error Message */}
-                {error && (
+            {/* Error Message */}
+            {error && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                )}
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            )}
 
-                {/* Action Buttons */}
+            {/* Action Buttons */}
                 <div className="flex space-x-4 pt-4">
                   <Button
                     type="button"
@@ -317,24 +318,24 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
                     <BarChart3 className="h-4 w-4 mr-2" />
                     Lihat Chart
                   </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onClose}
-                    className="flex-1"
-                    disabled={loading}
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="flex-1 bg-green-600 hover:bg-green-700"
-                    disabled={loading || !amount || parseFloat(amount) < minAmount}
-                  >
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="flex-1"
+                disabled={loading}
+              >
+                Batal
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                disabled={loading || !amount || parseFloat(amount) < minAmount}
+              >
                     {loading ? 'Memproses...' : 'Investasi Sekarang'}
-                  </Button>
-                </div>
-              </form>
+              </Button>
+            </div>
+          </form>
             )}
           </div>
         </CardContent>
