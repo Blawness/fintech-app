@@ -58,7 +58,7 @@ export default function SignUpPage() {
       } else {
         setError(data.error || 'Terjadi kesalahan saat mendaftar')
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan saat mendaftar')
     } finally {
       setLoading(false)

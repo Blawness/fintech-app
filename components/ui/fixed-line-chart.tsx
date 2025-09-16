@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface FixedLineChartProps {
@@ -150,7 +150,7 @@ const FixedLineChart: React.FC<FixedLineChartProps> = ({ product, className = ''
 
       // Add line series using correct v5 API
       console.log('[FixedChart] Adding line series...')
-      const lineSeries = chart.addSeries('Line', {
+      const lineSeries = chart.addSeries(LineSeries, {
         color: '#26a69a',
         lineWidth: 2,
         priceLineVisible: true,
@@ -215,8 +215,8 @@ const FixedLineChart: React.FC<FixedLineChartProps> = ({ product, className = ''
       }
 
       // Convert to line data format
-      const lineData: LineData[] = uniqueData.map(item => ({
-        time: item.time,
+      const lineData: LineData<Time>[] = uniqueData.map(item => ({
+        time: item.time as Time,
         value: item.close
       }))
 

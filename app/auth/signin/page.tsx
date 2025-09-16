@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,7 +33,7 @@ export default function SignInPage() {
       } else {
         router.push('/')
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan saat login')
     } finally {
       setLoading(false)

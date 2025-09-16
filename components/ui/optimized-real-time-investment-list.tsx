@@ -95,13 +95,13 @@ export function OptimizedRealTimeInvestmentList({ userId, className = '' }: Opti
         fetch('/api/products', {
           headers: {
             'Cache-Control': 'no-cache',
-            'If-None-Match': forceUpdate ? undefined : lastProductsHashRef.current
+            ...(forceUpdate ? {} : { 'If-None-Match': lastProductsHashRef.current })
           }
         }),
         fetch(`/api/portfolio/${userId}`, {
           headers: {
             'Cache-Control': 'no-cache',
-            'If-None-Match': forceUpdate ? undefined : lastPortfolioHashRef.current
+            ...(forceUpdate ? {} : { 'If-None-Match': lastPortfolioHashRef.current })
           }
         })
       ])

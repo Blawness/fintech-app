@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 // Market simulation configuration - More realistic volatility
@@ -20,7 +20,7 @@ const MARKET_TREND_FACTOR = 0.85 // 85% follow expected return trend
 const RANDOM_FACTOR = 0.15 // 15% random movement
 const MEAN_REVERSION_FACTOR = 0.1 // 10% mean reversion for conservative products
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Get all active investment products
     const products = await prisma.investmentProduct.findMany({

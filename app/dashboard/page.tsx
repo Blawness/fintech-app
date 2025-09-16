@@ -3,42 +3,23 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Eye, 
-  EyeOff, 
-  Plus, 
   Calendar, 
   Gift, 
   Grid3X3,
   PieChart,
-  Wallet,
   ArrowUpRight
 } from 'lucide-react'
 import { BottomNavigation } from '@/components/ui/bottom-navigation'
 import { RealTimePortfolio } from '@/components/ui/real-time-portfolio'
 
 
-interface InvestmentProduct {
-  id: string
-  name: string
-  type: string
-  category: string
-  expectedReturn: number
-  minInvestment: number
-  currentPrice: number
-  isLive?: boolean
-  quotaRemaining?: number
-}
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [products, setProducts] = useState<InvestmentProduct[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -59,7 +40,7 @@ export default function DashboardPage() {
     }, 5000)
 
     return () => clearInterval(interval)
-  }, [session, status])
+  }, [session, status, router])
 
   const fetchDashboardData = async (isBackgroundUpdate = false) => {
     try {
@@ -67,12 +48,6 @@ export default function DashboardPage() {
         setIsUpdating(true)
       }
 
-      // Fetch investment products
-      const productsResponse = await fetch('/api/products')
-      if (productsResponse.ok) {
-        const productsData = await productsResponse.json()
-        setProducts(productsData)
-      }
 
       setLastUpdate(new Date())
     } catch (error) {

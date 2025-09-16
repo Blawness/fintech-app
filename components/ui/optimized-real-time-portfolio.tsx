@@ -51,10 +51,10 @@ export function OptimizedRealTimePortfolio({ userId, className = '' }: Optimized
       setIsUpdating(true)
       setError(null)
       
-      const response = await fetch(`/api/portfolio/${userId}`, {
+      const response = await fetch(`/api/portfolio/${userId}`, {     
         headers: {
           'Cache-Control': 'no-cache',
-          'If-None-Match': forceUpdate ? undefined : lastDataHashRef.current
+          ...(forceUpdate ? {} : { 'If-None-Match': lastDataHashRef.current })
         }
       })
       

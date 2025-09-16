@@ -40,12 +40,6 @@ export default function EditProductPage() {
     isActive: true
   })
 
-  useEffect(() => {
-    if (productId) {
-      fetchProduct()
-    }
-  }, [productId])
-
   const fetchProduct = async () => {
     try {
       const response = await fetch(`/api/admin/products/${productId}`)
@@ -72,6 +66,12 @@ export default function EditProductPage() {
       alert('Terjadi kesalahan saat mengambil data produk')
     }
   }
+
+  useEffect(() => {
+    if (productId) {
+      fetchProduct()
+    }
+  }, [productId, fetchProduct])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

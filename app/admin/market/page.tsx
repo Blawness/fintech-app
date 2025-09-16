@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -146,7 +146,16 @@ export default function MarketControlPage() {
     }
   }
 
-  const startPolling = () => {
+  const stopPolling = useCallback(() => {
+    setPollingInterval((current) => {
+      if (current) {
+        window.clearInterval(current)
+      }
+      return null
+    })
+  }, [])
+
+  const startPolling = useCallback(() => {
     // Clear any existing polling first
     stopPolling()
     
@@ -165,14 +174,9 @@ export default function MarketControlPage() {
     }, 5000) // Poll every 5 seconds
 
     setPollingInterval(pollInterval)
-  }
+  }, [stopPolling])
 
-  const stopPolling = () => {
-    if (pollingInterval) {
-      window.clearInterval(pollingInterval)
-      setPollingInterval(null)
-    }
-  }
+  // stopPolling moved above and memoized
 
   useEffect(() => {
     fetchMarketStatus()
@@ -182,7 +186,7 @@ export default function MarketControlPage() {
     return () => {
       stopPolling()
     }
-  }, [])
+  }, [stopPolling])
 
   // Add effect to sync polling with market status
   useEffect(() => {
@@ -191,7 +195,7 @@ export default function MarketControlPage() {
     } else if (!marketStatus?.isRunning && pollingInterval) {
       stopPolling()
     }
-  }, [marketStatus?.isRunning, pollingInterval])
+  }, [marketStatus?.isRunning, pollingInterval, startPolling, stopPolling])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickData, HistogramData } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickData, CandlestickSeries, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface TradingChartProps {
@@ -156,10 +156,10 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
       console.log('Chart created successfully:', chart)
       chartRef.current = chart
 
-      // Add candlestick series using the correct method
+      // Add candlestick series using v5 generic API
       console.log('Adding candlestick series...')
       try {
-        const candlestickSeries = chart.addSeries('Candlestick', {
+        const candlestickSeries = chart.addSeries(CandlestickSeries, {
           upColor: '#26a69a',
           downColor: '#ef5350',
           borderDownColor: '#ef5350',
@@ -171,22 +171,7 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
         candlestickSeriesRef.current = candlestickSeries
       } catch (error) {
         console.error('Error creating candlestick series:', error)
-        // Try alternative method
-        try {
-          const candlestickSeries = chart.addSeries('Bar', {
-            upColor: '#26a69a',
-            downColor: '#ef5350',
-            borderDownColor: '#ef5350',
-            borderUpColor: '#26a69a',
-            wickDownColor: '#ef5350',
-            wickUpColor: '#26a69a',
-          })
-          console.log('Bar series created as fallback:', candlestickSeries)
-          candlestickSeriesRef.current = candlestickSeries
-        } catch (fallbackError) {
-          console.error('Error creating bar series:', fallbackError)
-          throw fallbackError
-        }
+        setError('Failed to create candlestick series')
       }
 
       // Handle resize
@@ -245,8 +230,8 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
       }
 
       // Convert to candlestick data format
-      const candlestickData: CandlestickData[] = uniqueData.map(item => ({
-        time: item.time,
+      const candlestickData: CandlestickData<Time>[] = uniqueData.map(item => ({
+        time: item.time as Time,
         open: item.open,
         high: item.high,
         low: item.low,

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineData, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface CorrectChartProps {
@@ -216,7 +216,7 @@ const CorrectChart: React.FC<CorrectChartProps> = ({ product, className = '' }) 
 
       // Convert to line data format
       const lineData = uniqueData.map(item => ({
-        time: item.time as any,
+        time: item.time as Time,
         value: item.close
       }))
 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface SimpleV5ChartProps {
@@ -159,12 +159,11 @@ const SimpleV5Chart: React.FC<SimpleV5ChartProps> = ({ product, className = '' }
       console.log('[SimpleV5Chart] Chart created successfully')
       chartRef.current = chart
 
-      // Add line series using minimal approach
+      // Add line series using v5 generic API with LineSeries class
       console.log('[SimpleV5Chart] Adding line series...')
       try {
-        // Try the most basic approach first
-        const lineSeries = chart.addSeries('Line')
-        console.log('[SimpleV5Chart] Line series created successfully (basic)')
+        const lineSeries = chart.addSeries(LineSeries)
+        console.log('[SimpleV5Chart] Line series created successfully')
         lineSeriesRef.current = lineSeries
         
         // Apply styling after creation
