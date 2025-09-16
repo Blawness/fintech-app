@@ -36,13 +36,13 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
   const [selectedTimeframe, setSelectedTimeframe] = useState('1H')
   const [isChartReady, setIsChartReady] = useState(false)
 
-  const timeframes = [
+  const timeframes = React.useMemo(() => ([
     { label: '1H', value: '1H', hours: 1 },
     { label: '4H', value: '4H', hours: 4 },
     { label: '1D', value: '1D', hours: 24 },
     { label: '1W', value: '1W', hours: 168 },
     { label: '1M', value: '1M', hours: 720 }
-  ]
+  ]), []
 
   // Calculate price change
   const priceChange = React.useMemo(() => {
@@ -87,7 +87,7 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
     } finally {
       setLoading(false)
     }
-  }, [product.id])
+  }, [product.id, product.name])
 
   // Initialize chart
   const initializeChart = useCallback(() => {
@@ -285,7 +285,7 @@ const SimpleTradingChart: React.FC<TradingChartProps> = ({ product, className = 
   useEffect(() => {
     const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
     fetchChartData(hours)
-  }, [selectedTimeframe, product.id, fetchChartData])
+  }, [selectedTimeframe, product.id, fetchChartData, timeframes])
 
   // Update chart when data changes
   useEffect(() => {

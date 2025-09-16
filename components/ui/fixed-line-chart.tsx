@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
@@ -37,13 +37,13 @@ const FixedLineChart: React.FC<FixedLineChartProps> = ({ product, className = ''
   const [isChartReady, setIsChartReady] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
 
-  const timeframes = [
+  const timeframes = useMemo(() => ([
     { label: '1H', value: '1H', hours: 1 },
     { label: '4H', value: '4H', hours: 4 },
     { label: '1D', value: '1D', hours: 24 },
     { label: '1W', value: '1W', hours: 168 },
     { label: '1M', value: '1M', hours: 720 }
-  ]
+  ]), [])
 
   // Calculate price change
   const priceChange = React.useMemo(() => {
