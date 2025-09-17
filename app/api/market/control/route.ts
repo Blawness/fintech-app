@@ -20,10 +20,19 @@ export async function POST(request: NextRequest) {
       case 'start':
         const startInterval = interval || 10000 // Default 10 seconds
         marketSimulator.start(startInterval)
+        
+        // Set database flag to indicate simulation is running
+        await prisma.systemSetting.upsert({
+          where: { key: 'market_simulator_running' },
+          update: { value: 'true' },
+          create: { key: 'market_simulator_running', value: 'true' }
+        })
+        
         return NextResponse.json({
           message: 'Market simulator started',
           interval: startInterval,
-          isRunning: marketSimulator.isSimulationRunning()
+          isRunning: true,
+          databaseFlag: 'true'
         })
 
       case 'stop':
@@ -32,13 +41,14 @@ export async function POST(request: NextRequest) {
         // Set a flag in database to stop external simulation
         await prisma.systemSetting.upsert({
           where: { key: 'market_simulator_running' },
-          update: { value: 'false' },
-          create: { key: 'market_simulator_running', value: 'false' }
+          update: { value: 'stopped' },
+          create: { key: 'market_simulator_running', value: 'stopped' }
         })
         
         return NextResponse.json({
           message: 'Market simulator stopped',
-          isRunning: marketSimulator.isSimulationRunning()
+          isRunning: false,
+          databaseFlag: 'stopped'
         })
 
       case 'status':
@@ -84,17 +94,41 @@ export async function GET() {
     const lastUpdate = recentHistory?.timestamp
     const timeDiff = lastUpdate ? now.getTime() - lastUpdate.getTime() : Infinity
     
-    // If last update was within 15 seconds OR database flag is true, consider it running
-    const isActuallyRunning = timeDiff < 15000 || 
-                             marketSimulator.isSimulationRunning() || 
-                             (runningFlag && runningFlag.value === 'true')
+    // More accurate detection: prioritize database flag over activity
+    let isActuallyRunning = false
+    
+    if (runningFlag) {
+      // If database flag exists, use it as primary indicator
+      isActuallyRunning = runningFlag.value === 'true'
+      
+      // Only consider recent activity if database flag is 'true'
+      if (runningFlag.value === 'true' && timeDiff > 15000) {
+        // If flag is true but no recent activity for 15+ seconds, consider it stopped
+        isActuallyRunning = false
+      }
+    } else {
+      // If no database flag, check if internal simulator is running
+      isActuallyRunning = marketSimulator.isSimulationRunning()
+    }
+    
+    // Don't use activity alone to determine running status
+    // Only use activity as a secondary check when flag is 'true'
+
+    // If no simulation is actually running, ensure database flag is set to stopped
+    if (!isActuallyRunning && runningFlag && runningFlag.value === 'true') {
+      await prisma.systemSetting.update({
+        where: { key: 'market_simulator_running' },
+        data: { value: 'stopped' }
+      })
+    }
 
     return NextResponse.json({
       message: 'Market simulator status',
       isRunning: isActuallyRunning,
       timestamp: lastUpdate?.toISOString() || new Date().toISOString(),
       lastUpdateTime: lastUpdate?.toISOString(),
-      timeSinceLastUpdate: timeDiff
+      timeSinceLastUpdate: timeDiff,
+      databaseFlag: runningFlag?.value || 'not_set'
     })
 
   } catch (error) {
