@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { AssetBuySlider } from '@/components/ui/asset-buy-slider'
 import FinalV5Chart from '@/components/ui/final-v5-chart'
-import { SimpleChart } from '@/components/ui/simple-chart'
 import { X, DollarSign, TrendingUp, BarChart3, Wallet } from 'lucide-react'
 
 // Utility function for consistent rounding
