@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries, Time } from 'lightweight-charts'
+import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries, AreaData, AreaSeries, Time } from 'lightweight-charts'
 import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
 
 interface MinimalisticLineChartProps {
@@ -25,49 +25,155 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const lineSeriesRef = useRef<ISeriesApi<'Line'> | null>(null)
+  const areaSeriesRef = useRef<ISeriesApi<'Area'> | null>(null)
   
   const [chartData, setChartData] = useState<ChartData[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedTimeframe, setSelectedTimeframe] = useState('1D')
   const [isChartReady, setIsChartReady] = useState(false)
+  const [currentTime, setCurrentTime] = useState<string>('')
 
   const timeframes = useMemo(() => ([
-    { label: '1D', value: '1D', hours: 24 },
-    { label: '5D', value: '5D', hours: 120 },
-    { label: '1M', value: '1M', hours: 720 },
-    { label: '6M', value: '6M', hours: 4320 },
-    { label: 'YTD', value: 'YTD', hours: 8760 },
-    { label: '1Y', value: '1Y', hours: 8760 },
-    { label: '5Y', value: '5Y', hours: 43800 },
-    { label: 'MAX', value: 'MAX', hours: 87600 }
+    { label: '1D', value: '1D', hours: 24, limit: 24, interval: '1h' }, // 24 data points (1 per hour)
+    { label: '5D', value: '5D', hours: 120, limit: 30, interval: '4h' }, // 30 data points (1 per 4 hours)
+    { label: '1M', value: '1M', hours: 720, limit: 30, interval: '1d' }, // 30 data points (1 per day)
+    { label: '6M', value: '6M', hours: 4320, limit: 30, interval: '6d' }, // 30 data points (1 per 6 days)
+    { label: 'YTD', value: 'YTD', hours: 8760, limit: 30, interval: '12d' }, // 30 data points (1 per 12 days)
+    { label: '1Y', value: '1Y', hours: 8760, limit: 30, interval: '12d' }, // 30 data points (1 per 12 days)
+    { label: '5Y', value: '5Y', hours: 43800, limit: 30, interval: '2m' }, // 30 data points (1 per 2 months)
+    { label: 'MAX', value: 'MAX', hours: 87600, limit: 30, interval: '4m' } // 30 data points (1 per 4 months)
   ]), [])
 
-  // Calculate price change
+  // Calculate price change and trend
   const priceChange = React.useMemo(() => {
     if (chartData.length < 2) {
-      return { change: 0, changePercent: 0 }
+      return { change: 0, changePercent: 0, isBullish: true }
     }
     
     const current = chartData[chartData.length - 1].value
     const previous = chartData[chartData.length - 2].value
     const change = current - previous
     const changePercent = (change / previous) * 100
+    const isBullish = change >= 0
     
-    return { change, changePercent }
+    return { change, changePercent, isBullish }
   }, [chartData])
 
+  // Calculate overall trend for color - more sophisticated calculation
+  const overallTrend = React.useMemo(() => {
+    if (chartData.length < 2) {
+      return { isBullish: true, trendColor: '#22c55e' }
+    }
+    
+    // Calculate trend using multiple methods for better accuracy
+    const first = chartData[0].value
+    const last = chartData[chartData.length - 1].value
+    
+    // Method 1: Simple first vs last comparison
+    const simpleTrend = last >= first
+    
+    // Method 2: Calculate average of first 25% vs last 25% of data
+    const quarterLength = Math.max(1, Math.floor(chartData.length / 4))
+    const firstQuarter = chartData.slice(0, quarterLength)
+    const lastQuarter = chartData.slice(-quarterLength)
+    
+    const firstQuarterAvg = firstQuarter.reduce((sum, item) => sum + item.value, 0) / firstQuarter.length
+    const lastQuarterAvg = lastQuarter.reduce((sum, item) => sum + item.value, 0) / lastQuarter.length
+    
+    const quarterTrend = lastQuarterAvg >= firstQuarterAvg
+    
+    // Method 3: Linear regression slope
+    let slope = 0
+    if (chartData.length > 1) {
+      const n = chartData.length
+      const sumX = chartData.reduce((sum, _, index) => sum + index, 0)
+      const sumY = chartData.reduce((sum, item) => sum + item.value, 0)
+      const sumXY = chartData.reduce((sum, item, index) => sum + (index * item.value), 0)
+      const sumXX = chartData.reduce((sum, _, index) => sum + (index * index), 0)
+      
+      slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX)
+    }
+    
+    const slopeTrend = slope >= 0
+    
+    // Combine all methods (majority vote)
+    const bullishVotes = [simpleTrend, quarterTrend, slopeTrend].filter(Boolean).length
+    const isBullish = bullishVotes >= 2
+    
+    const trendColor = isBullish ? '#22c55e' : '#ef4444' // Green for bullish, red for bearish
+    
+    console.log('[MinimalisticLineChart] Trend calculation:', {
+      simpleTrend,
+      quarterTrend,
+      slopeTrend,
+      slope,
+      isBullish,
+      first,
+      last,
+      firstQuarterAvg,
+      lastQuarterAvg
+    })
+    
+    return { isBullish, trendColor }
+  }, [chartData])
+
+  // Generate mock data for demo purposes
+  const generateMockData = useCallback((hours: number, limit: number) => {
+    const now = Math.floor(Date.now() / 1000)
+    const startTime = now - (hours * 3600)
+    const timeStep = (hours * 3600) / limit
+    
+    const mockData: ChartData[] = []
+    let currentPrice = product.currentPrice
+    
+    for (let i = 0; i < limit; i++) {
+      const time = startTime + (i * timeStep)
+      
+      // Generate realistic price movement based on risk level
+      const volatility = product.riskLevel === 'AGRESIF' ? 0.05 : 
+                        product.riskLevel === 'MODERAT' ? 0.03 : 0.02
+      
+      const randomChange = (Math.random() - 0.5) * volatility
+      const trendFactor = product.expectedReturn / 100 / (365 * 24) // Daily expected return
+      
+      currentPrice = currentPrice * (1 + randomChange + trendFactor)
+      
+      mockData.push({
+        time: time,
+        value: Math.max(currentPrice, product.currentPrice * 0.5) // Prevent negative prices
+      })
+    }
+    
+    return mockData
+  }, [product.currentPrice, product.riskLevel, product.expectedReturn])
+
   // Fetch chart data
-  const fetchChartData = useCallback(async (hours: number) => {
+  const fetchChartData = useCallback(async (hours: number, limit: number, interval: string) => {
     setLoading(true)
     setError(null)
     
     try {
-      console.log(`[MinimalisticLineChart] Fetching data for ${product.name}, hours: ${hours}`)
+      console.log(`[MinimalisticLineChart] Fetching data for ${product.name}, hours: ${hours}, limit: ${limit}, interval: ${interval}`)
       
-      const response = await fetch(`/api/market/history?productId=${product.id}&hours=${hours}&limit=100`)
+      // Check if this is a demo product
+      if (product.id === 'demo') {
+        console.log('[MinimalisticLineChart] Using mock data for demo product')
+        const mockData = generateMockData(hours, limit)
+        setChartData(mockData)
+        return
+      }
+      
+      // Fetch more data than needed to ensure we have enough for sampling
+      const response = await fetch(`/api/market/history?productId=${product.id}&hours=${hours}&limit=1000`)
       
       if (!response.ok) {
+        if (response.status === 404) {
+          console.log('[MinimalisticLineChart] Product not found, using mock data')
+          const mockData = generateMockData(hours, limit)
+          setChartData(mockData)
+          return
+        }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       
@@ -77,22 +183,53 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
         throw new Error(result.error || 'API returned error')
       }
       
-      // Convert candlestick data to line data - ensure it's line chart only
-      const lineData: ChartData[] = result.data.chartData.map((item: any) => ({
+      // Convert candlestick data to line data
+      const allData: ChartData[] = result.data.chartData.map((item: any) => ({
         time: item.time,
-        value: item.close // Only use close price for line chart
+        value: item.close
       }))
       
-      console.log(`[MinimalisticLineChart] Data received:`, lineData.length, 'points')
-      setChartData(lineData)
+      // Sort data by time
+      allData.sort((a, b) => a.time - b.time)
+      
+      // Sample data based on interval
+      const sampledData = sampleDataByInterval(allData, limit, interval)
+      
+      console.log(`[MinimalisticLineChart] Data received:`, allData.length, 'total points, sampled to:', sampledData.length, 'points')
+      setChartData(sampledData)
       
     } catch (err) {
       console.error('[MinimalisticLineChart] Fetch error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to fetch data')
+      // Fallback to mock data on error
+      console.log('[MinimalisticLineChart] Using mock data as fallback')
+      const mockData = generateMockData(hours, limit)
+      setChartData(mockData)
     } finally {
       setLoading(false)
     }
-  }, [product.id, product.name])
+  }, [product.id, product.name, generateMockData])
+
+  // Function to sample data by interval
+  const sampleDataByInterval = (data: ChartData[], targetCount: number, interval: string) => {
+    if (data.length <= targetCount) {
+      return data
+    }
+    
+    const step = Math.ceil(data.length / targetCount)
+    const sampled: ChartData[] = []
+    
+    for (let i = 0; i < data.length; i += step) {
+      sampled.push(data[i])
+      if (sampled.length >= targetCount) break
+    }
+    
+    // Always include the last data point
+    if (sampled.length > 0 && sampled[sampled.length - 1].time !== data[data.length - 1].time) {
+      sampled.push(data[data.length - 1])
+    }
+    
+    return sampled
+  }
 
   // Wait for container to be ready
   const waitForContainer = useCallback((): Promise<HTMLDivElement> => {
@@ -134,8 +271,8 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
         width: container.clientWidth || 800,
         height: 450,
         grid: {
-          vertLines: { color: '#f0f0f0' },
-          horzLines: { color: '#f0f0f0' },
+          vertLines: { color: '#f0f0f0', visible: true },
+          horzLines: { color: '#f0f0f0', visible: true },
         },
         rightPriceScale: {
           borderColor: '#cccccc',
@@ -148,6 +285,8 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           visible: true,
           entireTextOnly: true,
           lockScale: true, // Lock price scale
+          textColor: '#666666',
+          fontSize: 12,
         },
         timeScale: {
           borderColor: '#cccccc',
@@ -162,6 +301,8 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           fixLeftEdge: true, // Fix left edge
           fixRightEdge: true, // Fix right edge
           lockVisibleTimeRangeOnResize: true,
+          textColor: '#666666',
+          fontSize: 12,
           tickMarkFormatter: (time: any, tickMarkType: any, locale: string) => {
             const date = new Date(time * 1000)
             return date.toLocaleDateString('id-ID', { 
@@ -171,18 +312,22 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           },
         },
         crosshair: {
-          mode: 0, // Disable crosshair for fixed layout
+          mode: 1, // Enable crosshair for hover tooltip
           vertLine: {
-            color: '#888',
+            color: '#666',
             width: 1,
-            style: 2,
-            labelBackgroundColor: '#f0f0f0',
+            style: 1,
+            labelBackgroundColor: '#f8f9fa',
+            labelTextColor: '#333',
+            labelVisible: true,
           },
           horzLine: {
-            color: '#888',
+            color: '#666',
             width: 1,
-            style: 2,
-            labelBackgroundColor: '#f0f0f0',
+            style: 1,
+            labelBackgroundColor: '#f8f9fa',
+            labelTextColor: '#333',
+            labelVisible: true,
           },
         },
         handleScroll: {
@@ -203,12 +348,14 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       // Add line series - minimalistic line chart only (NO CANDLESTICK)
       console.log('[MinimalisticLineChart] Creating LineSeries (not CandlestickSeries)')
       const lineSeries = chart.addSeries(LineSeries, {
-        color: '#22c55e',
-        lineWidth: 3,
+        color: '#22c55e', // Default color, will be updated when data loads
+        lineWidth: 2,
         priceLineVisible: false,
         lastValueVisible: false,
-        crosshairMarkerVisible: false, // Disable crosshair markers for fixed layout
-        crosshairMarkerRadius: 6,
+        crosshairMarkerVisible: true, // Enable crosshair markers for hover
+        crosshairMarkerRadius: 4,
+        crosshairMarkerBorderColor: '#22c55e',
+        crosshairMarkerBackgroundColor: '#ffffff',
         priceFormat: {
           type: 'price',
           precision: 2,
@@ -218,7 +365,26 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       
       console.log('[MinimalisticLineChart] LineSeries created successfully')
       
+      // Add area series for gradient fill
+      const areaSeries = chart.addSeries(AreaSeries, {
+        lineColor: '#22c55e', // Default color, will be updated when data loads
+        topColor: '#22c55e20', // Default green, will be updated when data loads
+        bottomColor: '#22c55e05', // Default green, will be updated when data loads
+        lineWidth: 0, // Hide the line since we have line series
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        priceFormat: {
+          type: 'price',
+          precision: 2,
+          minMove: 0.01,
+        },
+      })
+      
+      console.log('[MinimalisticLineChart] AreaSeries created successfully')
+      
       lineSeriesRef.current = lineSeries
+      areaSeriesRef.current = areaSeries
 
       // Handle resize - Fixed layout
       const handleResize = () => {
@@ -268,7 +434,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
 
   // Update chart data
   const updateChart = useCallback(() => {
-    if (!lineSeriesRef.current || chartData.length === 0) {
+    if (!lineSeriesRef.current || !areaSeriesRef.current || chartData.length === 0) {
       return
     }
 
@@ -301,13 +467,38 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
         value: item.value, // This creates a simple line chart
       }))
 
+      // Convert to area data format for gradient fill
+      const areaData: AreaData[] = uniqueData.map(item => ({
+        time: item.time as Time,
+        value: item.value,
+      }))
+
       // Update line data - this will show as a line, not candlesticks
       console.log('[MinimalisticLineChart] Setting line data:', lineData.length, 'points')
       console.log('[MinimalisticLineChart] Sample data:', lineData.slice(0, 3))
       console.log('[MinimalisticLineChart] Using LineSeries.setData (not CandlestickSeries)')
       lineSeriesRef.current.setData(lineData)
       
-      console.log('[MinimalisticLineChart] Line chart data set successfully - should show as LINE, not candlesticks')
+      // Update area data for gradient fill
+      areaSeriesRef.current.setData(areaData)
+      
+      // Update colors based on trend
+      console.log('[MinimalisticLineChart] Updating colors - Trend:', overallTrend.isBullish ? 'Bullish' : 'Bearish', 'Color:', overallTrend.trendColor)
+      
+      // Update line series color
+      lineSeriesRef.current.applyOptions({
+        color: overallTrend.trendColor,
+        crosshairMarkerBorderColor: overallTrend.trendColor,
+      })
+      
+      // Update area series colors
+      areaSeriesRef.current.applyOptions({
+        lineColor: overallTrend.trendColor,
+        topColor: overallTrend.isBullish ? '#22c55e20' : '#ef444420',
+        bottomColor: overallTrend.isBullish ? '#22c55e05' : '#ef444405',
+      })
+      
+      console.log('[MinimalisticLineChart] Line chart data set successfully - should show as LINE with gradient fill, not candlesticks')
       
     } catch (err) {
       console.error('[MinimalisticLineChart] Update error:', err)
@@ -322,14 +513,21 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
         chartRef.current.remove()
         chartRef.current = null
         lineSeriesRef.current = null
+        areaSeriesRef.current = null
         setIsChartReady(false)
       } catch (err) {
         console.error('[MinimalisticLineChart] Cleanup error (non-critical):', err)
         chartRef.current = null
         lineSeriesRef.current = null
+        areaSeriesRef.current = null
         setIsChartReady(false)
       }
     }
+  }, [])
+
+  // Set current time on client side only
+  useEffect(() => {
+    setCurrentTime(new Date().toLocaleString('id-ID'))
   }, [])
 
   // Initialize chart on mount
@@ -346,13 +544,15 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
 
   // Fetch data when timeframe changes
   useEffect(() => {
-    const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
-    fetchChartData(hours)
+    const timeframe = timeframes.find(tf => tf.value === selectedTimeframe)
+    if (timeframe) {
+      fetchChartData(timeframe.hours, timeframe.limit, timeframe.interval)
+    }
   }, [selectedTimeframe, fetchChartData, timeframes])
 
   // Update chart when data changes
   useEffect(() => {
-    if (isChartReady && chartData.length > 0 && lineSeriesRef.current) {
+    if (isChartReady && chartData.length > 0 && lineSeriesRef.current && areaSeriesRef.current) {
       updateChart()
     }
   }, [chartData, isChartReady, updateChart])
@@ -377,8 +577,10 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           <button 
             onClick={() => {
               setError(null)
-              const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
-              fetchChartData(hours)
+              const timeframe = timeframes.find(tf => tf.value === selectedTimeframe)
+              if (timeframe) {
+                fetchChartData(timeframe.hours, timeframe.limit, timeframe.interval)
+              }
               initializeChart()
             }}
             className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -402,13 +604,13 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
                 Rp {product.currentPrice.toLocaleString('id-ID')}
               </span>
               <span className={`text-lg flex items-center gap-1 px-3 py-1 rounded-full ${
-                priceChange.change >= 0 ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
+                priceChange.isBullish ? 'text-green-600 bg-green-100' : 'text-red-600 bg-red-100'
               }`}>
-                {priceChange.change >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
+                {priceChange.isBullish ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {priceChange.changePercent >= 0 ? '+' : ''}{priceChange.changePercent.toFixed(2)}%
               </span>
               <span className="text-sm text-gray-500">
-                {new Date().toLocaleString('id-ID')} • {product.category}
+                {currentTime || 'Loading...'} • {product.category}
               </span>
             </div>
           </div>
@@ -448,20 +650,22 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
 
       {/* Chart Container - Fixed Layout */}
       <div className="px-6 pb-6">
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <div className="text-xs text-gray-500 bg-blue-50 px-3 py-1 rounded-lg inline-flex items-center gap-2">
             <span>🔒</span>
             <span>Chart View - Fixed Layout (No Zoom/Scroll)</span>
           </div>
+          <div className="text-xs text-gray-500">
+            Hover untuk melihat detail harga dan waktu
+          </div>
         </div>
         <div 
           ref={chartContainerRef} 
-          className="w-full bg-white relative overflow-hidden border border-gray-200 rounded-lg"
+          className="w-full bg-white relative overflow-hidden border border-gray-200 rounded-lg shadow-sm"
           style={{ 
             height: '450px',
             minHeight: '450px',
-            maxHeight: '450px',
-            pointerEvents: 'none' // Completely disable all interactions
+            maxHeight: '450px'
           }}
         >
           {(!isChartReady || loading) && (
@@ -477,8 +681,12 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
         {/* Chart Info - Fixed Position */}
         {chartData.length > 0 && (
           <div className="mt-4 space-y-3">
-            <div className="text-xs text-gray-500 bg-green-50 px-3 py-2 rounded-lg">
-              <span className="font-medium">💡 User-Friendly Chart:</span> Chart ini dirancang untuk kemudahan penggunaan. Tidak perlu zoom atau scroll - data ditampilkan dalam tampilan yang optimal untuk semua pengguna.
+            <div className={`text-xs text-gray-500 px-3 py-2 rounded-lg ${
+              overallTrend.isBullish ? 'bg-green-50' : 'bg-red-50'
+            }`}>
+              <span className="font-medium">
+                {overallTrend.isBullish ? '📈' : '📉'} {overallTrend.isBullish ? 'Bullish' : 'Bearish'} Trend:
+              </span> Chart menampilkan {chartData.length} data points dengan trend {overallTrend.isBullish ? 'naik' : 'turun'} untuk timeframe {selectedTimeframe}. Warna {overallTrend.isBullish ? 'hijau' : 'merah'} menunjukkan arah pergerakan harga.
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div className="bg-gray-50 rounded-lg p-3">
@@ -496,10 +704,20 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
               <div className="bg-gray-50 rounded-lg p-3">
                 <span className="text-gray-500 text-xs uppercase tracking-wide">Data Points</span>
                 <div className="font-bold text-lg text-blue-600">{chartData.length}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {selectedTimeframe === '1D' && '1 per jam'}
+                  {selectedTimeframe === '5D' && '1 per 4 jam'}
+                  {selectedTimeframe === '1M' && '1 per hari'}
+                  {selectedTimeframe === '6M' && '1 per 6 hari'}
+                  {(selectedTimeframe === 'YTD' || selectedTimeframe === '1Y') && '1 per 12 hari'}
+                  {selectedTimeframe === '5Y' && '1 per 2 bulan'}
+                  {selectedTimeframe === 'MAX' && '1 per 4 bulan'}
+                </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3">
                 <span className="text-gray-500 text-xs uppercase tracking-wide">Timeframe</span>
                 <div className="font-bold text-lg text-purple-600">{selectedTimeframe}</div>
+                <div className="text-xs text-gray-500 mt-1">Optimized View</div>
               </div>
             </div>
           </div>

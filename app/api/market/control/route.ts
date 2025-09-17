@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { marketSimulator } from '@/lib/market-simulator'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +28,14 @@ export async function POST(request: NextRequest) {
 
       case 'stop':
         marketSimulator.stop()
+        
+        // Set a flag in database to stop external simulation
+        await prisma.systemSetting.upsert({
+          where: { key: 'market_simulator_running' },
+          update: { value: 'false' },
+          create: { key: 'market_simulator_running', value: 'false' }
+        })
+        
         return NextResponse.json({
           message: 'Market simulator stopped',
           isRunning: marketSimulator.isSimulationRunning()
@@ -60,10 +69,32 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Check if simulation is running by looking at recent price history and database flag
+    const recentHistory = await prisma.priceHistory.findFirst({
+      orderBy: { timestamp: 'desc' },
+      select: { timestamp: true }
+    })
+
+    // Check database flag
+    const runningFlag = await prisma.systemSetting.findUnique({
+      where: { key: 'market_simulator_running' }
+    })
+
+    const now = new Date()
+    const lastUpdate = recentHistory?.timestamp
+    const timeDiff = lastUpdate ? now.getTime() - lastUpdate.getTime() : Infinity
+    
+    // If last update was within 15 seconds OR database flag is true, consider it running
+    const isActuallyRunning = timeDiff < 15000 || 
+                             marketSimulator.isSimulationRunning() || 
+                             (runningFlag && runningFlag.value === 'true')
+
     return NextResponse.json({
       message: 'Market simulator status',
-      isRunning: marketSimulator.isSimulationRunning(),
-      timestamp: new Date().toISOString()
+      isRunning: isActuallyRunning,
+      timestamp: lastUpdate?.toISOString() || new Date().toISOString(),
+      lastUpdateTime: lastUpdate?.toISOString(),
+      timeSinceLastUpdate: timeDiff
     })
 
   } catch (error) {

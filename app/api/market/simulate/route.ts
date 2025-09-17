@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-// Market simulation configuration - More realistic volatility
+// Market simulation configuration - More visible volatility for demo
 const RISK_VOLATILITY = {
-  'KONSERVATIF': 0.001, // 0.1% volatility for conservative products
-  'MODERAT': 0.003,     // 0.3% volatility for moderate products  
-  'AGRESIF': 0.008      // 0.8% volatility for aggressive products
+  'KONSERVATIF': 0.01, // 1% volatility for conservative products
+  'MODERAT': 0.03,     // 3% volatility for moderate products  
+  'AGRESIF': 0.08      // 8% volatility for aggressive products
 }
 
 // Product type volatility multipliers
@@ -16,8 +16,8 @@ const TYPE_VOLATILITY = {
   'SAHAM': 1.2          // Stocks - higher volatility
 }
 
-const MARKET_TREND_FACTOR = 0.85 // 85% follow expected return trend
-const RANDOM_FACTOR = 0.15 // 15% random movement
+const MARKET_TREND_FACTOR = 0.5 // 50% follow expected return trend
+const RANDOM_FACTOR = 0.5 // 50% random movement
 const MEAN_REVERSION_FACTOR = 0.1 // 10% mean reversion for conservative products
 
 export async function POST() {
@@ -111,8 +111,9 @@ function calculateNewPrice(product: {
   const adjustedVolatility = baseVolatility * typeMultiplier
 
   // Calculate trend based on expected return (annualized to interval)
-  // Assuming 10-second intervals, there are 3153600 intervals in a year
-  const intervalsPerYear = 3153600
+  // For demo purposes, let's make changes more visible
+  // Assuming we run simulation every 5 seconds, that's 12 times per minute = 630720 times per year
+  const intervalsPerYear = 630720 // 5-second intervals
   const trendPerInterval = expectedReturn / intervalsPerYear
 
   // Generate random factor with normal distribution (more realistic)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -47,12 +47,28 @@ export default function MarketControlPage() {
   const [interval, setInterval] = useState(10000)
   const [showHistory, setShowHistory] = useState(false)
   const [pollingInterval, setPollingInterval] = useState<number | null>(null)
+  const [isClient, setIsClient] = useState(false)
+  const [demoProduct, setDemoProduct] = useState<any>(null)
+  const statusIntervalRef = useRef<number | null>(null)
 
   const fetchMarketStatus = async () => {
     try {
       const response = await fetch('/api/market/control')
       const data = await response.json()
-      setMarketStatus(data)
+      
+      // Check if simulation is actually running by looking at recent activity
+      const now = new Date()
+      const lastUpdate = data.timestamp ? new Date(data.timestamp) : null
+      const timeDiff = lastUpdate ? now.getTime() - lastUpdate.getTime() : Infinity
+      
+      // If last update was within 15 seconds, consider it running
+      const isActuallyRunning = timeDiff < 15000
+      
+      setMarketStatus({
+        ...data,
+        isRunning: isActuallyRunning,
+        timestamp: data.timestamp
+      })
     } catch (error) {
       console.error('Error fetching market status:', error)
     }
@@ -67,6 +83,19 @@ export default function MarketControlPage() {
       }
     } catch (error) {
       console.error('Error fetching price history:', error)
+    }
+  }
+
+  const fetchDemoProduct = async () => {
+    try {
+      const response = await fetch('/api/products')
+      const products = await response.json()
+      if (products && products.length > 0) {
+        // Use the first product as demo
+        setDemoProduct(products[0])
+      }
+    } catch (error) {
+      console.error('Error fetching demo product:', error)
     }
   }
 
@@ -163,10 +192,30 @@ export default function MarketControlPage() {
     const pollInterval = window.setInterval(() => {
       (async () => {
         try {
-          const response = await fetch('/api/market/simulate')
-          const data = await response.json()
-          if (data.products) {
-            setLastUpdate(data.products)
+          // First run a simulation to get updated data
+          const simulateResponse = await fetch('/api/market/simulate', {
+            method: 'POST'
+          })
+          const simulateData = await simulateResponse.json()
+          
+          if (simulateResponse.ok && simulateData.products) {
+            setLastUpdate(simulateData.products)
+          } else {
+            // Fallback: get current product data
+            const response = await fetch('/api/market/simulate')
+            const data = await response.json()
+            if (data.products) {
+              // Convert product data to update format
+              const updateData = data.products.map((product: any) => ({
+                id: product.id,
+                name: product.name,
+                oldPrice: product.currentPrice,
+                newPrice: product.currentPrice,
+                change: 0,
+                changePercent: 0
+              }))
+              setLastUpdate(updateData)
+            }
           }
         } catch (error) {
           console.error('Error polling market updates:', error)
@@ -180,12 +229,26 @@ export default function MarketControlPage() {
   // stopPolling moved above and memoized
 
   useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
     fetchMarketStatus()
     fetchPriceHistory()
+    fetchDemoProduct()
+    
+    // Poll status every 3 seconds to detect changes
+    statusIntervalRef.current = window.setInterval(() => {
+      fetchMarketStatus()
+    }, 3000)
     
     // Cleanup on unmount
     return () => {
       stopPolling()
+      if (statusIntervalRef.current) {
+        clearInterval(statusIntervalRef.current)
+        statusIntervalRef.current = null
+      }
     }
   }, [stopPolling])
 
@@ -234,7 +297,7 @@ export default function MarketControlPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Last Update:</span>
                   <span className="text-sm text-gray-600">
-                    {marketStatus?.timestamp ? new Date(marketStatus.timestamp).toLocaleString() : 'N/A'}
+                    {marketStatus?.timestamp && isClient ? new Date(marketStatus.timestamp).toLocaleString() : 'N/A'}
                   </span>
                 </div>
               </div>
@@ -384,7 +447,7 @@ export default function MarketControlPage() {
                         <div key={record.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-100">
                           <div className="flex items-center gap-2">
                             <span className="text-gray-500">
-                              {new Date(record.timestamp).toLocaleTimeString()}
+                              {isClient ? new Date(record.timestamp).toLocaleTimeString() : 'Loading...'}
                             </span>
                             <span className="font-mono">
                               Rp {record.price?.toLocaleString('id-ID') || '0'}
@@ -436,17 +499,31 @@ export default function MarketControlPage() {
                 <p className="text-sm text-gray-600 mb-4">
                   Berikut adalah contoh chart minimalistic untuk produk investasi:
                 </p>
-                <MinimalisticLineChart 
-                  product={{
-                    id: 'demo',
-                    name: 'Sample Investment Product',
-                    currentPrice: 150000,
-                    riskLevel: 'MODERAT',
-                    expectedReturn: 12.5,
-                    category: 'Technology'
-                  }}
-                  className="w-full"
-                />
+                {demoProduct ? (
+                  <MinimalisticLineChart 
+                    product={{
+                      id: demoProduct.id,
+                      name: demoProduct.name,
+                      currentPrice: demoProduct.currentPrice,
+                      riskLevel: demoProduct.riskLevel,
+                      expectedReturn: demoProduct.expectedReturn,
+                      category: demoProduct.category
+                    }}
+                    className="w-full"
+                  />
+                ) : (
+                  <MinimalisticLineChart 
+                    product={{
+                      id: 'demo',
+                      name: 'Sample Investment Product',
+                      currentPrice: 150000,
+                      riskLevel: 'MODERAT',
+                      expectedReturn: 12.5,
+                      category: 'Technology'
+                    }}
+                    className="w-full"
+                  />
+                )}
               </div>
             </div>
           </CardContent>
