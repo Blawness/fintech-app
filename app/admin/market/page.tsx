@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Play, Pause, RefreshCw, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import MinimalisticLineChart from '@/components/ui/minimalistic-line-chart'
 
 interface MarketStatus {
   isRunning: boolean
@@ -415,6 +416,41 @@ export default function MarketControlPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Minimalistic Chart Demo */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Minimalistic Line Chart Demo</CardTitle>
+            <CardDescription>
+              Demonstrasi UI line chart yang minimalistic untuk produk investasi
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Chart minimalistic ini menggunakan line chart sederhana tanpa elemen candlestick, 
+                fokus pada tampilan yang bersih dan mudah dibaca.
+              </p>
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Sample Chart</h4>
+                <p className="text-sm text-gray-600 mb-4">
+                  Berikut adalah contoh chart minimalistic untuk produk investasi:
+                </p>
+                <MinimalisticLineChart 
+                  product={{
+                    id: 'demo',
+                    name: 'Sample Investment Product',
+                    currentPrice: 150000,
+                    riskLevel: 'MODERAT',
+                    expectedReturn: 12.5,
+                    category: 'Technology'
+                  }}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Market Configuration Info */}
         <Card className="mt-8">

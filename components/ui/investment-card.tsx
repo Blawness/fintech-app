@@ -3,11 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Star,
-  Eye,
-  EyeOff
+  Star
 } from 'lucide-react'
 
 interface InvestmentCardProps {

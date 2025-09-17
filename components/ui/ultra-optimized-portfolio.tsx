@@ -83,11 +83,16 @@ export function UltraOptimizedPortfolio({ userId, className = '' }: UltraOptimiz
       setIsUpdating(true)
       setError(null)
       
+      const headers: Record<string, string> = {
+        'Cache-Control': 'no-cache'
+      }
+      
+      if (!forceUpdate && lastDataHashRef.current) {
+        headers['If-None-Match'] = lastDataHashRef.current
+      }
+      
       const response = await fetch(`/api/portfolio/${userId}`, {
-        headers: {
-          'Cache-Control': 'no-cache',
-          'If-None-Match': forceUpdate ? undefined : lastDataHashRef.current
-        }
+        headers
       })
       
       if (response.status === 304) {

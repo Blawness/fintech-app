@@ -87,7 +87,7 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
     } finally {
       setLoading(false)
     }
-  }, [product.id])
+  }, [product.id, product.name])
 
   // Wait for container to be ready
   const waitForContainer = useCallback((): Promise<HTMLDivElement> => {
@@ -310,7 +310,7 @@ const FinalV5Chart: React.FC<FinalV5ChartProps> = ({ product, className = '' }) 
     console.log('[FinalV5Chart] Timeframe changed to:', selectedTimeframe)
     const hours = timeframes.find(tf => tf.value === selectedTimeframe)?.hours || 24
     fetchChartData(hours)
-  }, [selectedTimeframe, fetchChartData])
+  }, [selectedTimeframe, fetchChartData, timeframes])
 
   // Update chart when data changes
   useEffect(() => {

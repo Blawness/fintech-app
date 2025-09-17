@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, DollarSign, Shield, AlertTriangle } from 'lucide-react'
+import { TrendingUp, Shield, AlertTriangle } from 'lucide-react'
 import { InvestmentModal } from '@/app/investment/investment-modal'
 
 interface Product {
@@ -59,7 +59,7 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
   const [isUpdating, setIsUpdating] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setIsUpdating(true)
       
@@ -86,7 +86,7 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
       setLoading(false)
       setIsUpdating(false)
     }
-  }
+  }, [userId])
 
   useEffect(() => {
     fetchData()
@@ -95,7 +95,7 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
     const interval = setInterval(fetchData, 5000)
     
     return () => clearInterval(interval)
-  }, [userId])
+  }, [userId, fetchData])
 
   const getRiskIcon = (riskLevel: string) => {
     switch (riskLevel) {
@@ -271,7 +271,6 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
       {showModal && selectedProduct && (
         <InvestmentModal
           product={selectedProduct}
-          userId={userId}
           portfolio={portfolio}
           onClose={() => {
             setShowModal(false)

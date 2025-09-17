@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AssetBuySlider } from '@/components/ui/asset-buy-slider'
-import FinalV5Chart from '@/components/ui/final-v5-chart'
+import MinimalisticLineChart from '@/components/ui/minimalistic-line-chart'
 import { X, DollarSign, TrendingUp, BarChart3, Wallet } from 'lucide-react'
 
 // Utility function for consistent rounding
@@ -50,13 +50,12 @@ interface Portfolio {
 
 interface InvestmentModalProps {
   product: Product
-  userId: string
   portfolio: Portfolio | null
   onClose: () => void
   onSuccess: () => void
 }
 
-export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess }: InvestmentModalProps) {
+export function InvestmentModal({ product, portfolio, onClose, onSuccess }: InvestmentModalProps) {
   const [amount, setAmount] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -64,7 +63,6 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
 
   const minAmount = roundToDecimals(product.minInvestment, 2)
   const currentPrice = roundToDecimals(product.currentPrice, 2)
-  const units = amount > 0 ? roundToDecimals(amount / currentPrice, 4) : 0
   const availableBalance = portfolio?.rdnBalance || 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -166,7 +164,7 @@ export function InvestmentModal({ product, userId, portfolio, onClose, onSuccess
             {activeTab === 'chart' && (
               <div className="space-y-6">
                 {/* Trading Chart */}
-                      <FinalV5Chart product={product} />
+                <MinimalisticLineChart product={product} />
                 
                 {/* Product Information */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

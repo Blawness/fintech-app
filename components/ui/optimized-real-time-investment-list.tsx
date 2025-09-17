@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, DollarSign, Shield, AlertTriangle } from 'lucide-react'
+import { TrendingUp, Shield, AlertTriangle } from 'lucide-react'
 import { InvestmentModal } from '@/app/investment/investment-modal'
 
 interface Product {
@@ -382,7 +382,6 @@ export function OptimizedRealTimeInvestmentList({ userId, className = '' }: Opti
       {showModal && selectedProduct && (
         <InvestmentModal
           product={selectedProduct}
-          userId={userId}
           portfolio={portfolio}
           onClose={() => {
             setShowModal(false)

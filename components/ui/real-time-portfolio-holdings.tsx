@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, DollarSign, Package } from 'lucide-react'
+import { TrendingUp, TrendingDown, Package } from 'lucide-react'
 import { SellModal } from '@/app/portfolio/sell-modal'
 
 interface Holding {
@@ -38,7 +38,7 @@ export function RealTimePortfolioHoldings({ userId, className = '' }: RealTimePo
   const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null)
   const [showSellModal, setShowSellModal] = useState(false)
 
-  const fetchHoldings = async () => {
+  const fetchHoldings = useCallback(async () => {
     try {
       setIsUpdating(true)
       const response = await fetch(`/api/portfolio/${userId}`)
@@ -53,7 +53,7 @@ export function RealTimePortfolioHoldings({ userId, className = '' }: RealTimePo
       setLoading(false)
       setIsUpdating(false)
     }
-  }
+  }, [userId])
 
   useEffect(() => {
     fetchHoldings()
@@ -62,7 +62,7 @@ export function RealTimePortfolioHoldings({ userId, className = '' }: RealTimePo
     const interval = setInterval(fetchHoldings, 5000)
     
     return () => clearInterval(interval)
-  }, [userId])
+  }, [userId, fetchHoldings])
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {

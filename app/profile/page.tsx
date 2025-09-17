@@ -2,8 +2,8 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState, useCallback } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
   User,
@@ -35,20 +35,9 @@ export default function ProfilePage() {
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [showValues, setShowValues] = useState(false)
+  const [showValues] = useState(false)
 
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    fetchProfile()
-  }, [session, status])
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await fetch(`/api/profile/${session?.user?.id}`)
       if (response.ok) {
@@ -60,7 +49,18 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchProfile()
+  }, [session, status, router, fetchProfile])
 
   const handleLogout = async () => {
     try {

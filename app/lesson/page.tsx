@@ -43,7 +43,7 @@ export default function LessonPage() {
     }
 
     fetchTodayLesson()
-  }, [session, status])
+  }, [session, status, router])
 
   const fetchTodayLesson = async () => {
     try {

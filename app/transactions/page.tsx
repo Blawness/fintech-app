@@ -2,13 +2,12 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState, useCallback } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
   TrendingUp,
   TrendingDown,
-  Plus,
   PiggyBank,
   Coins
 } from 'lucide-react'
@@ -33,18 +32,7 @@ export default function TransactionsPage() {
   const [activeTab, setActiveTab] = useState('order')
   const [activeFilter, setActiveFilter] = useState('semua')
 
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    fetchTransactions()
-  }, [session, status])
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       const response = await fetch(`/api/transactions/${session?.user?.id}`)
       if (response.ok) {
@@ -56,7 +44,18 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchTransactions()
+  }, [session, status, router, fetchTransactions])
 
   if (status === 'loading' || loading) {
     return (

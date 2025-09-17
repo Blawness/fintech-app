@@ -2,16 +2,15 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
   Search,
   TrendingUp,
   TrendingDown,
-  Plus,
-  Star
+  Plus
 } from 'lucide-react'
 import { BottomNavigation } from '@/components/ui/bottom-navigation'
 
@@ -41,23 +40,12 @@ interface WatchlistItem {
 export default function ExplorePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
-  const [products, setProducts] = useState<InvestmentProduct[]>([])
-  const [watchlist, setWatchlist] = useState<WatchlistItem[]>([])
+  const [, setProducts] = useState<InvestmentProduct[]>([])
+  const [, setWatchlist] = useState<WatchlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    fetchExploreData()
-  }, [session, status])
-
-  const fetchExploreData = async () => {
+  const fetchExploreData = useCallback(async () => {
     try {
       // Fetch investment products
       const productsResponse = await fetch('/api/products')
@@ -77,7 +65,18 @@ export default function ExplorePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchExploreData()
+  }, [session, status, router, fetchExploreData])
 
   if (status === 'loading' || loading) {
     return (

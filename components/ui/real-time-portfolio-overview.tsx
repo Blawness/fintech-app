@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect, useCallback } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react'
 
 interface Holding {
@@ -45,7 +45,7 @@ export function RealTimePortfolioOverview({ userId, className = '' }: RealTimePo
   const [isUpdating, setIsUpdating] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  const fetchPortfolio = async () => {
+  const fetchPortfolio = useCallback(async () => {
     try {
       setIsUpdating(true)
       const response = await fetch(`/api/portfolio/${userId}`)
@@ -60,7 +60,7 @@ export function RealTimePortfolioOverview({ userId, className = '' }: RealTimePo
       setLoading(false)
       setIsUpdating(false)
     }
-  }
+  }, [userId])
 
   useEffect(() => {
     fetchPortfolio()
@@ -69,7 +69,7 @@ export function RealTimePortfolioOverview({ userId, className = '' }: RealTimePo
     const interval = setInterval(fetchPortfolio, 5000)
     
     return () => clearInterval(interval)
-  }, [userId])
+  }, [userId, fetchPortfolio])
 
   if (loading) {
     return (

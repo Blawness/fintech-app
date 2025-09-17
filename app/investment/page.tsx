@@ -1,7 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
 import { RealTimeInvestmentList } from '@/components/ui/real-time-investment-list'
 import { RealTimePortfolio } from '@/components/ui/real-time-portfolio'
 

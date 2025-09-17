@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TrendingUp, TrendingDown, Clock, CheckCircle, XCircle } from 'lucide-react'
@@ -38,7 +38,7 @@ export function RealTimePortfolioTransactions({ userId, className = '' }: RealTi
   const [isUpdating, setIsUpdating] = useState(false)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     try {
       setIsUpdating(true)
       const response = await fetch(`/api/transactions/${userId}`)
@@ -53,7 +53,7 @@ export function RealTimePortfolioTransactions({ userId, className = '' }: RealTi
       setLoading(false)
       setIsUpdating(false)
     }
-  }
+  }, [userId])
 
   useEffect(() => {
     fetchTransactions()
@@ -62,7 +62,7 @@ export function RealTimePortfolioTransactions({ userId, className = '' }: RealTi
     const interval = setInterval(fetchTransactions, 10000)
     
     return () => clearInterval(interval)
-  }, [userId])
+  }, [userId, fetchTransactions])
 
   const getStatusIcon = (status: string) => {
     switch (status) {

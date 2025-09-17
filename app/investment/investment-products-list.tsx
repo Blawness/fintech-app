@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { TrendingUp, TrendingDown, DollarSign, Shield, AlertTriangle } from 'lucide-react'
+import { TrendingUp, Shield, AlertTriangle } from 'lucide-react'
 import { InvestmentModal } from './investment-modal'
 
 interface Product {
@@ -48,10 +48,9 @@ interface Portfolio {
 interface InvestmentProductsListProps {
   products: Product[]
   portfolio: Portfolio | null
-  userId: string
 }
 
-export function InvestmentProductsList({ products, portfolio, userId }: InvestmentProductsListProps) {
+export function InvestmentProductsList({ products, portfolio }: InvestmentProductsListProps) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showModal, setShowModal] = useState(false)
 
@@ -207,7 +206,6 @@ export function InvestmentProductsList({ products, portfolio, userId }: Investme
       {showModal && selectedProduct && (
         <InvestmentModal
           product={selectedProduct}
-          userId={userId}
           portfolio={portfolio}
           onClose={() => {
             setShowModal(false)

@@ -2,8 +2,8 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useEffect, useState, useCallback } from 'react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
   TrendingUp,
@@ -32,18 +32,7 @@ export default function HistoryPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
 
-  useEffect(() => {
-    if (status === 'loading') return
-    
-    if (!session) {
-      router.push('/auth/signin')
-      return
-    }
-
-    fetchHistory()
-  }, [session, status])
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       const response = await fetch(`/api/transactions/${session?.user?.id}?type=history`)
       if (response.ok) {
@@ -55,7 +44,18 @@ export default function HistoryPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [session?.user?.id])
+
+  useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchHistory()
+  }, [session, status, router, fetchHistory])
 
   const getStatusIcon = (status: string) => {
     switch (status) {

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AssetSellSlider } from '@/components/ui/asset-sell-slider'
-import { X, TrendingDown, DollarSign } from 'lucide-react'
+import { X } from 'lucide-react'
 
 // Utility function for consistent rounding
 const roundToDecimals = (value: number, decimals: number = 4): number => {
@@ -42,9 +42,6 @@ export function SellModal({ holding, onClose, onSuccess }: SellModalProps) {
 
   const maxUnits = roundToDecimals(holding.units, 4)
   const currentPrice = roundToDecimals(holding.product.currentPrice, 2)
-  const totalValue = roundToDecimals(units * currentPrice, 2)
-  const gain = roundToDecimals((currentPrice - holding.averagePrice) * units, 2)
-  const gainPercent = roundToDecimals(((currentPrice - holding.averagePrice) / holding.averagePrice) * 100, 2)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

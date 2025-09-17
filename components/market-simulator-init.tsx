@@ -14,7 +14,7 @@ export function MarketSimulatorInit() {
         const response = await fetch('/api/market/control')
         const data = await response.json()
         console.log('Market simulator status:', data.isRunning ? 'Running' : 'Stopped')
-      } catch (error) {
+      } catch {
         console.log('Market simulator not accessible from client')
       }
     }

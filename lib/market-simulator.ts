@@ -19,8 +19,6 @@ const MARKET_TREND_FACTOR = 0.85 // 85% follow expected return trend
 const RANDOM_FACTOR = 0.15 // 15% random movement
 const MEAN_REVERSION_FACTOR = 0.1 // 10% mean reversion for conservative products
 
-const simulationInterval: NodeJS.Timeout | null = null
-const isRunning = false
 
 export class MarketSimulator {
   private static instance: MarketSimulator

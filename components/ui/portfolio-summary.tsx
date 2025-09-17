@@ -1,6 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { 
   Eye, 
   EyeOff, 
@@ -55,18 +54,6 @@ export function PortfolioSummary({
     }
   }
 
-  const getRiskProfileColor = (profile: string) => {
-    switch (profile) {
-      case 'KONSERVATIF':
-        return 'text-green-600'
-      case 'MODERAT':
-        return 'text-yellow-600'
-      case 'AGRESIF':
-        return 'text-red-600'
-      default:
-        return 'text-green-600'
-    }
-  }
 
   return (
     <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
