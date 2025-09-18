@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import MinimalisticLineChart from '@/components/ui/minimalistic-line-chart'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -22,7 +22,7 @@ export default function ChartDemoPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
   // Sample products for demo
-  const sampleProducts: Product[] = [
+  const sampleProducts: Product[] = useMemo(() => [
     {
       id: '1',
       name: 'Amazon.com Inc',
@@ -63,9 +63,9 @@ export default function ChartDemoPage() {
       expectedReturn: 11.2,
       category: 'Technology'
     }
-  ]
+  ], [])
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
       // Simulate API call
@@ -79,11 +79,11 @@ export default function ChartDemoPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sampleProducts])
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [fetchProducts])
 
   const getRiskColor = (riskLevel: string) => {
     switch (riskLevel) {

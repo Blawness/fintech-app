@@ -29,6 +29,15 @@ interface PriceHistory {
   timestamp: string
 }
 
+interface Product {
+  id: string
+  name: string
+  currentPrice: number
+  riskLevel: string
+  expectedReturn: number
+  category: string
+}
+
 interface ProductHistory {
   product: {
     id: string
@@ -48,26 +57,16 @@ export default function MarketControlPage() {
   const [showHistory, setShowHistory] = useState(false)
   const [pollingInterval, setPollingInterval] = useState<number | null>(null)
   const [isClient, setIsClient] = useState(false)
-  const [demoProduct, setDemoProduct] = useState<any>(null)
+  const [demoProduct, setDemoProduct] = useState<Product | null>(null)
   const statusIntervalRef = useRef<number | null>(null)
 
   const fetchMarketStatus = async () => {
     try {
       const response = await fetch('/api/market/control')
       const data = await response.json()
-      
-      // Check if simulation is actually running by looking at recent activity
-      const now = new Date()
-      const lastUpdate = data.timestamp ? new Date(data.timestamp) : null
-      const timeDiff = lastUpdate ? now.getTime() - lastUpdate.getTime() : Infinity
-      
-      // If last update was within 15 seconds, consider it running
-      const isActuallyRunning = timeDiff < 15000
-      
       setMarketStatus({
-        ...data,
-        isRunning: isActuallyRunning,
-        timestamp: data.timestamp
+        isRunning: Boolean(data?.isRunning),
+        timestamp: data?.timestamp || new Date().toISOString()
       })
     } catch (error) {
       console.error('Error fetching market status:', error)
@@ -192,33 +191,9 @@ export default function MarketControlPage() {
     const pollInterval = window.setInterval(() => {
       (async () => {
         try {
-          // First run a simulation to get updated data
-          const simulateResponse = await fetch('/api/market/simulate', {
-            method: 'POST'
-          })
-          const simulateData = await simulateResponse.json()
-          
-          if (simulateResponse.ok && simulateData.products) {
-            setLastUpdate(simulateData.products)
-          } else {
-            // Fallback: get current product data
-            const response = await fetch('/api/market/simulate')
-            const data = await response.json()
-            if (data.products) {
-              // Convert product data to update format
-              const updateData = data.products.map((product: any) => ({
-                id: product.id,
-                name: product.name,
-                oldPrice: product.currentPrice,
-                newPrice: product.currentPrice,
-                change: 0,
-                changePercent: 0
-              }))
-              setLastUpdate(updateData)
-            }
-          }
+          await fetchMarketStatus()
         } catch (error) {
-          console.error('Error polling market updates:', error)
+          console.error('Error polling market status:', error)
         }
       })()
     }, 5000) // Poll every 5 seconds

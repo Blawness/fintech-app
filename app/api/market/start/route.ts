@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { marketSimulator } from '@/lib/market-simulator'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,6 +18,13 @@ export async function POST(request: NextRequest) {
 
     // Start market simulator
     marketSimulator.start(interval)
+
+    // Set database flag to indicate simulation is running
+    await prisma.systemSetting.upsert({
+      where: { key: 'market_simulator_running' },
+      update: { value: 'true' },
+      create: { key: 'market_simulator_running', value: 'true' }
+    })
 
     return NextResponse.json({
       message: 'Market simulator started successfully',

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { createChart, ColorType, IChartApi, ISeriesApi, LineData, LineSeries, AreaData, AreaSeries, Time } from 'lightweight-charts'
-import { TrendingUp, TrendingDown, BarChart3 } from 'lucide-react'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 
 interface MinimalisticLineChartProps {
   product: {
@@ -184,7 +184,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       }
       
       // Convert candlestick data to line data
-      const allData: ChartData[] = result.data.chartData.map((item: any) => ({
+      const allData: ChartData[] = result.data.chartData.map((item: { time: number; close: number }) => ({
         time: item.time,
         value: item.close
       }))
@@ -193,7 +193,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       allData.sort((a, b) => a.time - b.time)
       
       // Sample data based on interval
-      const sampledData = sampleDataByInterval(allData, limit, interval)
+      const sampledData = sampleDataByInterval(allData, limit)
       
       console.log(`[MinimalisticLineChart] Data received:`, allData.length, 'total points, sampled to:', sampledData.length, 'points')
       setChartData(sampledData)
@@ -210,7 +210,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
   }, [product.id, product.name, generateMockData])
 
   // Function to sample data by interval
-  const sampleDataByInterval = (data: ChartData[], targetCount: number, interval: string) => {
+  const sampleDataByInterval = (data: ChartData[], targetCount: number) => {
     if (data.length <= targetCount) {
       return data
     }
@@ -303,7 +303,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           lockVisibleTimeRangeOnResize: true,
           textColor: '#666666',
           fontSize: 12,
-          tickMarkFormatter: (time: any, tickMarkType: any, locale: string) => {
+          tickMarkFormatter: (time: number) => {
             const date = new Date(time * 1000)
             return date.toLocaleDateString('id-ID', { 
               month: 'short', 
@@ -504,7 +504,7 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       console.error('[MinimalisticLineChart] Update error:', err)
       setError(`Chart update failed: ${err instanceof Error ? err.message : 'Unknown error'}`)
     }
-  }, [chartData])
+  }, [chartData, overallTrend.isBullish, overallTrend.trendColor])
 
   // Cleanup chart
   const cleanupChart = useCallback(() => {

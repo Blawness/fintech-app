@@ -31,7 +31,7 @@ const checkStopFlag = setInterval(async () => {
       where: { key: 'market_simulator_running' }
     })
     
-    if (setting && setting.value === 'false') {
+    if (!setting || (setting.value && setting.value !== 'true')) {
       console.log('🛑 Stop signal received from admin panel...')
       marketSimulator.stop()
       await prisma.systemSetting.update({
