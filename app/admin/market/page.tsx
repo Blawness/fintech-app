@@ -48,6 +48,25 @@ interface ProductHistory {
   history: PriceHistory[]
 }
 
+interface MarketConfig {
+  riskVolatility: {
+    KONSERVATIF: number
+    MODERAT: number
+    AGRESIF: number
+  }
+  typeVolatility: {
+    PASAR_UANG: number
+    OBLIGASI: number
+    CAMPURAN: number
+    SAHAM: number
+  }
+  marketTrendFactor: number
+  randomFactor: number
+  meanReversionFactor: number
+  minPriceFloor: number
+  simulationInterval: number
+}
+
 export default function MarketControlPage() {
   const [marketStatus, setMarketStatus] = useState<MarketStatus | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -58,6 +77,11 @@ export default function MarketControlPage() {
   const [pollingInterval, setPollingInterval] = useState<number | null>(null)
   const [isClient, setIsClient] = useState(false)
   const [demoProduct, setDemoProduct] = useState<Product | null>(null)
+  const [marketConfig, setMarketConfig] = useState<MarketConfig | null>(null)
+  const [configLoading, setConfigLoading] = useState(false)
+  const [showConfig, setShowConfig] = useState(false)
+  const [tempConfig, setTempConfig] = useState<MarketConfig | null>(null)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const statusIntervalRef = useRef<number | null>(null)
 
   const fetchMarketStatus = async () => {
@@ -95,6 +119,131 @@ export default function MarketControlPage() {
       }
     } catch (error) {
       console.error('Error fetching demo product:', error)
+    }
+  }
+
+  const fetchMarketConfig = async () => {
+    try {
+      setConfigLoading(true)
+      const response = await fetch('/api/admin/market-config')
+      const data = await response.json()
+      if (data.success) {
+        setMarketConfig(data.config)
+        setTempConfig(data.config)
+        setHasUnsavedChanges(false)
+      }
+    } catch (error) {
+      console.error('Error fetching market configuration:', error)
+    } finally {
+      setConfigLoading(false)
+    }
+  }
+
+  const updateMarketConfig = async (config: Partial<MarketConfig>) => {
+    try {
+      setConfigLoading(true)
+      const response = await fetch('/api/admin/market-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ config }),
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        setMarketConfig(data.config)
+        
+        // Refresh market simulator configuration if it's running
+        if (marketStatus?.isRunning) {
+          try {
+            await fetch('/api/market/control', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ action: 'refresh_config' }),
+            })
+          } catch (error) {
+            console.error('Error refreshing market simulator config:', error)
+          }
+        }
+        
+        alert('Market configuration updated successfully!')
+      } else {
+        alert(data.error || 'Error updating configuration')
+      }
+    } catch (error) {
+      console.error('Error updating market configuration:', error)
+      alert('Error updating market configuration')
+    } finally {
+      setConfigLoading(false)
+    }
+  }
+
+  const updateTempConfig = (key: string, value: any) => {
+    if (tempConfig) {
+      const newTempConfig = { ...tempConfig, [key]: value }
+      setTempConfig(newTempConfig)
+      setHasUnsavedChanges(true)
+    }
+  }
+
+  const saveConfiguration = async () => {
+    if (!tempConfig) return
+
+    try {
+      setConfigLoading(true)
+      const response = await fetch('/api/admin/market-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ config: tempConfig }),
+      })
+      
+      const data = await response.json()
+      if (data.success) {
+        setMarketConfig(tempConfig)
+        setHasUnsavedChanges(false)
+        
+        // Refresh market simulator configuration if it's running
+        if (marketStatus?.isRunning) {
+          try {
+            await fetch('/api/market/control', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ action: 'refresh_config' }),
+            })
+          } catch (error) {
+            console.error('Error refreshing market simulator config:', error)
+          }
+        }
+        
+        alert('Configuration saved successfully!')
+      } else {
+        alert(data.error || 'Error saving configuration')
+      }
+    } catch (error) {
+      console.error('Error saving configuration:', error)
+      alert('Error saving configuration')
+    } finally {
+      setConfigLoading(false)
+    }
+  }
+
+  const resetToSaved = () => {
+    if (marketConfig) {
+      setTempConfig(marketConfig)
+      setHasUnsavedChanges(false)
+    }
+  }
+
+  const resetToDefaults = async () => {
+    if (confirm('Are you sure you want to reset to default configuration? This will discard all unsaved changes.')) {
+      await fetchMarketConfig()
     }
   }
 
@@ -211,6 +360,7 @@ export default function MarketControlPage() {
     fetchMarketStatus()
     fetchPriceHistory()
     fetchDemoProduct()
+    fetchMarketConfig()
     
     // Poll status every 3 seconds to detect changes
     statusIntervalRef.current = window.setInterval(() => {
@@ -504,41 +654,270 @@ export default function MarketControlPage() {
           </CardContent>
         </Card>
 
-        {/* Market Configuration Info */}
+        {/* Market Configuration Controls */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Market Configuration</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Market Configuration</span>
+              <Button
+                onClick={() => setShowConfig(!showConfig)}
+                variant="outline"
+                size="sm"
+              >
+                {showConfig ? 'Hide' : 'Show'} Configuration
+              </Button>
+            </CardTitle>
             <CardDescription>
               Konfigurasi simulasi pasar berdasarkan tingkat risiko
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium text-green-600">Konservatif</h3>
-                <p className="text-sm text-gray-600">Volatilitas: 2%</p>
-                <p className="text-sm text-gray-600">Risiko rendah, pergerakan harga stabil</p>
+            {showConfig && tempConfig ? (
+              <div className="space-y-6">
+                {/* Risk Volatility Configuration */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Risk Level Volatility</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {Object.entries(tempConfig.riskVolatility).map(([level, value]) => (
+                      <div key={level} className="p-4 border rounded-lg">
+                        <h4 className={`font-medium ${
+                          level === 'KONSERVATIF' ? 'text-green-600' :
+                          level === 'MODERAT' ? 'text-yellow-600' : 'text-red-600'
+                        }`}>
+                          {level}
+                        </h4>
+                        <div className="mt-2 space-y-2">
+                          <label className="text-sm text-gray-600">Volatility:</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={value}
+                              onChange={(e) => {
+                                const newValue = parseFloat(e.target.value)
+                                if (!isNaN(newValue)) {
+                                  updateTempConfig('riskVolatility', {
+                                    ...tempConfig.riskVolatility,
+                                    [level]: newValue
+                                  })
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border rounded text-sm"
+                              min="0"
+                              max="1"
+                              step="0.0001"
+                            />
+                            <span className="text-sm text-gray-500">({(value * 100).toFixed(3)}%)</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Type Volatility Configuration */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Product Type Volatility Multipliers</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {Object.entries(tempConfig.typeVolatility).map(([type, value]) => (
+                      <div key={type} className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-700">{type}</h4>
+                        <div className="mt-2 space-y-2">
+                          <label className="text-sm text-gray-600">Multiplier:</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              value={value}
+                              onChange={(e) => {
+                                const newValue = parseFloat(e.target.value)
+                                if (!isNaN(newValue)) {
+                                  updateTempConfig('typeVolatility', {
+                                    ...tempConfig.typeVolatility,
+                                    [type]: newValue
+                                  })
+                                }
+                              }}
+                              className="w-20 px-2 py-1 border rounded text-sm"
+                              min="0"
+                              max="5"
+                              step="0.1"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Algorithm Factors */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Algorithm Factors</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <label className="text-sm font-medium text-gray-700">Market Trend Factor</label>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          value={tempConfig.marketTrendFactor}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value)
+                            if (!isNaN(newValue)) {
+                              updateTempConfig('marketTrendFactor', newValue)
+                            }
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(tempConfig.marketTrendFactor * 100).toFixed(0)}% follow expected return
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <label className="text-sm font-medium text-gray-700">Random Factor</label>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          value={tempConfig.randomFactor}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value)
+                            if (!isNaN(newValue)) {
+                              updateTempConfig('randomFactor', newValue)
+                            }
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(tempConfig.randomFactor * 100).toFixed(0)}% random movement
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <label className="text-sm font-medium text-gray-700">Mean Reversion Factor</label>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          value={tempConfig.meanReversionFactor}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value)
+                            if (!isNaN(newValue)) {
+                              updateTempConfig('meanReversionFactor', newValue)
+                            }
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(tempConfig.meanReversionFactor * 100).toFixed(0)}% mean reversion
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <label className="text-sm font-medium text-gray-700">Min Price Floor</label>
+                      <div className="mt-2">
+                        <input
+                          type="number"
+                          value={tempConfig.minPriceFloor}
+                          onChange={(e) => {
+                            const newValue = parseFloat(e.target.value)
+                            if (!isNaN(newValue)) {
+                              updateTempConfig('minPriceFloor', newValue)
+                            }
+                          }}
+                          className="w-full px-2 py-1 border rounded text-sm"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          {(tempConfig.minPriceFloor * 100).toFixed(0)}% of original price
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Simulation Interval */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-medium">Simulation Settings</h3>
+                  <div className="p-4 border rounded-lg">
+                    <label className="text-sm font-medium text-gray-700">Simulation Interval (ms)</label>
+                    <div className="mt-2">
+                      <input
+                        type="number"
+                        value={tempConfig.simulationInterval}
+                        onChange={(e) => {
+                          const newValue = parseInt(e.target.value)
+                          if (!isNaN(newValue)) {
+                            updateTempConfig('simulationInterval', newValue)
+                          }
+                        }}
+                        className="w-32 px-2 py-1 border rounded text-sm"
+                        min="1000"
+                        max="300000"
+                        step="1000"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        {tempConfig.simulationInterval / 1000} seconds between updates
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center">
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={resetToSaved}
+                      variant="outline"
+                      disabled={!hasUnsavedChanges || configLoading}
+                    >
+                      Reset to Saved
+                    </Button>
+                    <Button
+                      onClick={resetToDefaults}
+                      variant="outline"
+                      disabled={configLoading}
+                    >
+                      Reset to Defaults
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {hasUnsavedChanges && (
+                      <span className="text-sm text-orange-600 font-medium">
+                        You have unsaved changes
+                      </span>
+                    )}
+                    <Button
+                      onClick={saveConfiguration}
+                      disabled={!hasUnsavedChanges || configLoading}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {configLoading ? 'Saving...' : 'Save Configuration'}
+                    </Button>
+                  </div>
+                </div>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium text-yellow-600">Moderat</h3>
-                <p className="text-sm text-gray-600">Volatilitas: 5%</p>
-                <p className="text-sm text-gray-600">Risiko sedang, pergerakan harga sedang</p>
+            ) : showConfig && configLoading ? (
+              <div className="text-center py-8">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p className="text-gray-600">Loading configuration...</p>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-medium text-red-600">Agresif</h3>
-                <p className="text-sm text-gray-600">Volatilitas: 10%</p>
-                <p className="text-sm text-gray-600">Risiko tinggi, pergerakan harga volatile</p>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Click "Show Configuration" to view and edit market settings</p>
               </div>
-            </div>
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <h4 className="font-medium text-blue-900">Algoritma Simulasi</h4>
-              <ul className="text-sm text-blue-800 mt-2 space-y-1">
-                <li>• 70% mengikuti expected return trend</li>
-                <li>• 30% pergerakan random berdasarkan volatilitas</li>
-                <li>• Harga minimum 1% dari harga asli (mencegah harga negatif)</li>
-                <li>• Update otomatis portfolio dan return calculation</li>
-              </ul>
-            </div>
+            )}
           </CardContent>
         </Card>
       </div>

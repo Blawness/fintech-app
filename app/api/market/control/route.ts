@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
           isRunning: marketSimulator.isSimulationRunning()
         })
 
+      case 'refresh_config':
+        await marketSimulator.refreshConfiguration()
+        return NextResponse.json({
+          message: 'Market simulator configuration refreshed',
+          isRunning: marketSimulator.isSimulationRunning()
+        })
+
       default:
         return NextResponse.json({ 
           error: 'Invalid action. Use: start, stop, or status' 
