@@ -114,7 +114,7 @@ export function InvestmentModal({ product, portfolio, onClose, onSuccess }: Inve
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden">
+      <Card className="w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
@@ -132,7 +132,7 @@ export function InvestmentModal({ product, portfolio, onClose, onSuccess }: Inve
           </div>
         </CardHeader>
         
-        <CardContent className="p-0">
+        <CardContent className="p-0 flex-1 overflow-y-auto">
           {/* Tab Navigation */}
           <div className="flex border-b">
             <button

@@ -26,7 +26,14 @@ export class MarketSimulator {
   private intervalId: NodeJS.Timeout | null = null
   private isRunning = false
   private spare: number | null = null // For Box-Muller transform
-  private config: any = null // Cached configuration
+  private config: {
+    riskVolatility: Record<'KONSERVATIF' | 'MODERAT' | 'AGRESIF', number>
+    typeVolatility: Record<'PASAR_UANG' | 'OBLIGASI' | 'CAMPURAN' | 'SAHAM', number>
+    marketTrendFactor: number
+    randomFactor: number
+    meanReversionFactor: number
+    minPriceFloor: number
+  } | null = null // Cached configuration
 
   private constructor() {}
 
@@ -103,7 +110,7 @@ export class MarketSimulator {
       settings.forEach(setting => {
         const key = setting.key.replace('market_config_', '')
         try {
-          this.config[key] = JSON.parse(setting.value)
+          ;(this.config as unknown as Record<string, unknown>)[key] = JSON.parse(setting.value)
         } catch (error) {
           console.error(`Error parsing setting ${setting.key}:`, error)
         }
@@ -123,11 +130,25 @@ export class MarketSimulator {
   }
 
   // Get current configuration
-  public async getConfiguration(): Promise<any> {
+  public async getConfiguration(): Promise<{
+    riskVolatility: Record<'KONSERVATIF' | 'MODERAT' | 'AGRESIF', number>
+    typeVolatility: Record<'PASAR_UANG' | 'OBLIGASI' | 'CAMPURAN' | 'SAHAM', number>
+    marketTrendFactor: number
+    randomFactor: number
+    meanReversionFactor: number
+    minPriceFloor: number
+  }> {
     if (!this.config) {
       await this.loadConfiguration()
     }
-    return this.config
+    return this.config as {
+      riskVolatility: Record<'KONSERVATIF' | 'MODERAT' | 'AGRESIF', number>
+      typeVolatility: Record<'PASAR_UANG' | 'OBLIGASI' | 'CAMPURAN' | 'SAHAM', number>
+      marketTrendFactor: number
+      randomFactor: number
+      meanReversionFactor: number
+      minPriceFloor: number
+    }
   }
 
   // Refresh configuration from database

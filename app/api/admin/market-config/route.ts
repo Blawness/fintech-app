@@ -3,8 +3,32 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Types
+type RiskVolatility = {
+  KONSERVATIF: number
+  MODERAT: number
+  AGRESIF: number
+}
+
+type TypeVolatility = {
+  PASAR_UANG: number
+  OBLIGASI: number
+  CAMPURAN: number
+  SAHAM: number
+}
+
+export type MarketConfig = {
+  riskVolatility: RiskVolatility
+  typeVolatility: TypeVolatility
+  marketTrendFactor: number
+  randomFactor: number
+  meanReversionFactor: number
+  minPriceFloor: number
+  simulationInterval: number
+}
+
 // Default market configuration
-const DEFAULT_CONFIG = {
+const DEFAULT_CONFIG: MarketConfig = {
   riskVolatility: {
     KONSERVATIF: 0.0005,  // 0.05% - Very low volatility
     MODERAT: 0.002,       // 0.2% - Low volatility
@@ -41,12 +65,12 @@ export async function GET() {
     })
 
     // Convert settings to configuration object
-    const config = { ...DEFAULT_CONFIG }
+    const config: MarketConfig = { ...DEFAULT_CONFIG }
     
     settings.forEach(setting => {
       const key = setting.key.replace('market_config_', '')
       try {
-        config[key] = JSON.parse(setting.value)
+        ;(config as unknown as Record<string, unknown>)[key] = JSON.parse(setting.value)
       } catch (error) {
         console.error(`Error parsing setting ${setting.key}:`, error)
       }
@@ -74,7 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { config } = body
+    const { config } = body as { config?: Partial<MarketConfig> }
 
     if (!config) {
       return NextResponse.json({ 
@@ -127,7 +151,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { key, value } = body
+    const { key, value } = body as { key?: keyof MarketConfig; value?: unknown }
 
     if (!key || value === undefined) {
       return NextResponse.json({ 
@@ -136,7 +160,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate specific configuration
-    const validation = validateSpecificConfig(key, value)
+    const validation = validateSpecificConfig(key as keyof MarketConfig, value)
     if (!validation.valid) {
       return NextResponse.json({ 
         error: validation.error 
@@ -168,15 +192,17 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-function validateConfiguration(config: any): { valid: boolean; error?: string } {
+function validateConfiguration(config: Partial<MarketConfig>): { valid: boolean; error?: string } {
   // Validate risk volatility
   if (config.riskVolatility) {
     const riskLevels = ['KONSERVATIF', 'MODERAT', 'AGRESIF']
+    const rv = config.riskVolatility as RiskVolatility
     for (const level of riskLevels) {
-      if (config.riskVolatility[level] === undefined || 
-          typeof config.riskVolatility[level] !== 'number' ||
-          config.riskVolatility[level] < 0 ||
-          config.riskVolatility[level] > 1) {
+      const key = level as keyof RiskVolatility
+      if (rv[key] === undefined || 
+          typeof rv[key] !== 'number' ||
+          rv[key] < 0 ||
+          rv[key] > 1) {
         return { valid: false, error: `Invalid risk volatility for ${level}. Must be between 0 and 1` }
       }
     }
@@ -185,11 +211,13 @@ function validateConfiguration(config: any): { valid: boolean; error?: string } 
   // Validate type volatility
   if (config.typeVolatility) {
     const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM']
+    const tv = config.typeVolatility as TypeVolatility
     for (const type of types) {
-      if (config.typeVolatility[type] === undefined || 
-          typeof config.typeVolatility[type] !== 'number' ||
-          config.typeVolatility[type] < 0 ||
-          config.typeVolatility[type] > 5) {
+      const key = type as keyof TypeVolatility
+      if (tv[key] === undefined || 
+          typeof tv[key] !== 'number' ||
+          tv[key] < 0 ||
+          tv[key] > 5) {
         return { valid: false, error: `Invalid type volatility for ${type}` }
       }
     }
@@ -239,33 +267,35 @@ function validateConfiguration(config: any): { valid: boolean; error?: string } 
   return { valid: true }
 }
 
-function validateSpecificConfig(key: string, value: any): { valid: boolean; error?: string } {
+function validateSpecificConfig(key: keyof MarketConfig, value: unknown): { valid: boolean; error?: string } {
   switch (key) {
     case 'riskVolatility':
-      if (typeof value !== 'object') {
+      if (typeof value !== 'object' || value === null) {
         return { valid: false, error: 'Risk volatility must be an object' }
       }
       const riskLevels = ['KONSERVATIF', 'MODERAT', 'AGRESIF']
       for (const level of riskLevels) {
-        if (value[level] === undefined || 
-            typeof value[level] !== 'number' ||
-            value[level] < 0 ||
-            value[level] > 1) {
+        const typed = value as RiskVolatility as Record<string, number>
+        if (typed[level] === undefined || 
+            typeof typed[level] !== 'number' ||
+            typed[level] < 0 ||
+            typed[level] > 1) {
           return { valid: false, error: `Invalid risk volatility for ${level}. Must be between 0 and 1` }
         }
       }
       break
 
     case 'typeVolatility':
-      if (typeof value !== 'object') {
+      if (typeof value !== 'object' || value === null) {
         return { valid: false, error: 'Type volatility must be an object' }
       }
       const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM']
       for (const type of types) {
-        if (value[type] === undefined || 
-            typeof value[type] !== 'number' ||
-            value[type] < 0 ||
-            value[type] > 5) {
+        const typed = value as TypeVolatility as Record<string, number>
+        if (typed[type] === undefined || 
+            typeof typed[type] !== 'number' ||
+            typed[type] < 0 ||
+            typed[type] > 5) {
           return { valid: false, error: `Invalid type volatility for ${type}` }
         }
       }

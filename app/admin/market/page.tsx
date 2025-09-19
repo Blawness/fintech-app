@@ -139,49 +139,12 @@ export default function MarketControlPage() {
     }
   }
 
-  const updateMarketConfig = async (config: Partial<MarketConfig>) => {
-    try {
-      setConfigLoading(true)
-      const response = await fetch('/api/admin/market-config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ config }),
-      })
-      
-      const data = await response.json()
-      if (data.success) {
-        setMarketConfig(data.config)
-        
-        // Refresh market simulator configuration if it's running
-        if (marketStatus?.isRunning) {
-          try {
-            await fetch('/api/market/control', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ action: 'refresh_config' }),
-            })
-          } catch (error) {
-            console.error('Error refreshing market simulator config:', error)
-          }
-        }
-        
-        alert('Market configuration updated successfully!')
-      } else {
-        alert(data.error || 'Error updating configuration')
-      }
-    } catch (error) {
-      console.error('Error updating market configuration:', error)
-      alert('Error updating market configuration')
-    } finally {
-      setConfigLoading(false)
-    }
-  }
+  // Removed unused updateMarketConfig function
 
-  const updateTempConfig = (key: string, value: any) => {
+  const updateTempConfig = (
+    key: keyof MarketConfig,
+    value: MarketConfig[keyof MarketConfig]
+  ) => {
     if (tempConfig) {
       const newTempConfig = { ...tempConfig, [key]: value }
       setTempConfig(newTempConfig)
@@ -915,7 +878,7 @@ export default function MarketControlPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600">Click "Show Configuration" to view and edit market settings</p>
+                <p className="text-gray-600">Click &quot;Show Configuration&quot; to view and edit market settings</p>
               </div>
             )}
           </CardContent>

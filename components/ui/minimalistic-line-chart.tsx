@@ -284,9 +284,6 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           alignLabels: true,
           visible: true,
           entireTextOnly: true,
-          lockScale: true, // Lock price scale
-          textColor: '#666666',
-          fontSize: 12,
         },
         timeScale: {
           borderColor: '#cccccc',
@@ -294,15 +291,12 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
           secondsVisible: false,
           rightOffset: 12,
           barSpacing: 3,
-          lockVisibleTimeRangeOnResize: true,
           rightBarStaysOnScroll: true,
           shiftVisibleRangeOnNewBar: true,
           visible: true,
           fixLeftEdge: true, // Fix left edge
           fixRightEdge: true, // Fix right edge
           lockVisibleTimeRangeOnResize: true,
-          textColor: '#666666',
-          fontSize: 12,
           tickMarkFormatter: (time: number) => {
             const date = new Date(time * 1000)
             return date.toLocaleDateString('id-ID', { 
@@ -318,7 +312,6 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
             width: 1,
             style: 1,
             labelBackgroundColor: '#f8f9fa',
-            labelTextColor: '#333',
             labelVisible: true,
           },
           horzLine: {
@@ -326,7 +319,6 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
             width: 1,
             style: 1,
             labelBackgroundColor: '#f8f9fa',
-            labelTextColor: '#333',
             labelVisible: true,
           },
         },
@@ -367,10 +359,10 @@ const MinimalisticLineChart: React.FC<MinimalisticLineChartProps> = ({ product, 
       
       // Add area series for gradient fill
       const areaSeries = chart.addSeries(AreaSeries, {
-        lineColor: '#22c55e', // Default color, will be updated when data loads
+        lineColor: 'rgba(0,0,0,0)', // Hide the area line
         topColor: '#22c55e20', // Default green, will be updated when data loads
         bottomColor: '#22c55e05', // Default green, will be updated when data loads
-        lineWidth: 0, // Hide the line since we have line series
+        lineWidth: 1,
         priceLineVisible: false,
         lastValueVisible: false,
         crosshairMarkerVisible: false,
