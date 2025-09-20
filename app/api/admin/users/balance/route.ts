@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
         id: 'BALANCE_INJECTION',
         name: 'Balance Injection',
         type: 'BALANCE',
-        category: 'BALANCE',
         riskLevel: 'KONSERVATIF',
         expectedReturn: 0,
         minInvestment: 0,

@@ -9,12 +9,7 @@ const RISK_VOLATILITY = {
 }
 
 // Product type volatility multipliers
-const TYPE_VOLATILITY = {
-  'PASAR_UANG': 0.3,    // Money market - very stable
-  'OBLIGASI': 0.5,      // Bonds - stable
-  'CAMPURAN': 0.8,      // Mixed - moderate volatility
-  'SAHAM': 1.2          // Stocks - higher volatility
-}
+
 
 const MARKET_TREND_FACTOR = 0.5 // 50% follow expected return trend
 const RANDOM_FACTOR = 0.5 // 50% random movement
@@ -96,19 +91,14 @@ function calculateNewPrice(product: {
   currentPrice: number;
   expectedReturn: number;
   riskLevel: string;
-  category: string;
 }): number {
   const currentPrice = product.currentPrice
   const expectedReturn = product.expectedReturn / 100 // Convert percentage to decimal
   const riskLevel = product.riskLevel as keyof typeof RISK_VOLATILITY
-  const category = product.category as keyof typeof TYPE_VOLATILITY
   
   // Base volatility from risk level
   const baseVolatility = RISK_VOLATILITY[riskLevel] || 0.001
-  
-  // Apply category multiplier
-  const typeMultiplier = TYPE_VOLATILITY[category] || 1.0
-  const adjustedVolatility = baseVolatility * typeMultiplier
+  const adjustedVolatility = baseVolatility
 
   // Calculate trend based on expected return (annualized to interval)
   // For demo purposes, let's make changes more visible

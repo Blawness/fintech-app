@@ -70,15 +70,19 @@ export async function GET(
     if (totalValue > 0) {
       updatedHoldings.forEach(holding => {
         const percentage = (holding.currentValue / totalValue) * 100
-        switch (holding.product.category) {
-          case 'PASAR_UANG':
-            assetAllocation.moneyMarket += percentage
+        switch (holding.product.type) {
+          case 'REKSADANA':
+            assetAllocation.mixed += percentage
             break
           case 'OBLIGASI':
             assetAllocation.bonds += percentage
             break
-          case 'SAHAM':
+          case 'SBN':
+            assetAllocation.bonds += percentage
+            break
+          case 'CRYPTO':
             assetAllocation.stocks += percentage
+            break
             break
           case 'CAMPURAN':
             assetAllocation.mixed += percentage

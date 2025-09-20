@@ -227,12 +227,12 @@ export class MarketSimulator {
     currentPrice: number;
     expectedReturn: number;
     riskLevel: string;
-    category: string;
+    type: string;
   }): number {
     const currentPrice = product.currentPrice
     const expectedReturn = product.expectedReturn / 100 // Convert percentage to decimal
     const riskLevel = product.riskLevel as keyof typeof DEFAULT_RISK_VOLATILITY
-    const category = product.category as keyof typeof DEFAULT_TYPE_VOLATILITY
+    const type = product.type as keyof typeof DEFAULT_TYPE_VOLATILITY
     
     // Get configuration values with fallbacks to defaults
     const riskVolatility = this.config?.riskVolatility || DEFAULT_RISK_VOLATILITY
@@ -245,8 +245,8 @@ export class MarketSimulator {
     // Base volatility from risk level
     const baseVolatility = riskVolatility[riskLevel] || 0.001
     
-    // Apply category multiplier
-    const typeMultiplier = typeVolatility[category] || 1.0
+    // Apply type multiplier
+    const typeMultiplier = typeVolatility[type] || 1.0
     const adjustedVolatility = baseVolatility * typeMultiplier
 
     // Calculate trend based on expected return (annualized to interval)

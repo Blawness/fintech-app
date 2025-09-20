@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
 
     // Get or create portfolio
     let portfolio = await prisma.portfolio.findUnique({
@@ -88,15 +88,19 @@ export async function GET(
     if (totalValue > 0) {
       updatedHoldings.forEach(holding => {
         const percentage = (holding.currentValue / totalValue) * 100
-        switch (holding.product.category) {
-          case 'PASAR_UANG':
-            assetAllocation.moneyMarket += percentage
+        switch (holding.product.type) {
+          case 'REKSADANA':
+            assetAllocation.mixed += percentage
             break
           case 'OBLIGASI':
             assetAllocation.bonds += percentage
             break
-          case 'SAHAM':
+          case 'SBN':
+            assetAllocation.bonds += percentage
+            break
+          case 'CRYPTO':
             assetAllocation.stocks += percentage
+            break
             break
           case 'CAMPURAN':
             assetAllocation.mixed += percentage
@@ -134,10 +138,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const { userId } = params
+    const { userId } = await params
     const body = await request.json()
     const { riskProfile, rdnBalance, tradingBalance } = body
 

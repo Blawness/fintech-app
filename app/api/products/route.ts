@@ -28,13 +28,12 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, type, category, riskLevel, expectedReturn, minInvestment, currentPrice, description } = body
+    const { name, type, riskLevel, expectedReturn, minInvestment, currentPrice, description } = body
 
     const product = await prisma.investmentProduct.create({
       data: {
         name,
         type,
-        category,
         riskLevel,
         expectedReturn,
         minInvestment,

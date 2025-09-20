@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
     const {
       name,
       type,
-      category,
       riskLevel,
       expectedReturn,
       minInvestment,
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!name || !type || !category || !riskLevel || !expectedReturn || !minInvestment || !currentPrice || !description) {
+    if (!name || !type || !riskLevel || !expectedReturn || !minInvestment || !currentPrice || !description) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -53,11 +52,10 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         type,
-        category,
         riskLevel,
-        expectedReturn: parseFloat(expectedReturn),
-        minInvestment: parseFloat(minInvestment),
-        currentPrice: parseFloat(currentPrice),
+        expectedReturn,
+        minInvestment,
+        currentPrice,
         description
       }
     })

@@ -105,8 +105,7 @@ export async function GET(request: NextRequest) {
           name: product.name,
           currentPrice: product.currentPrice,
           expectedReturn: product.expectedReturn,
-          riskLevel: product.riskLevel,
-          category: product.category
+          riskLevel: product.riskLevel
         },
         chartData,
         timeRange: {

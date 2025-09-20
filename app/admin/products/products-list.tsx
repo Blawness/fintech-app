@@ -8,7 +8,7 @@ interface Product {
   id: string
   name: string
   type: string
-  category: string
+  category?: string
   riskLevel: string
   expectedReturn: number
   minInvestment: number

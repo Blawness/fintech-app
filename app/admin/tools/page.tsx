@@ -23,6 +23,8 @@ export default function ProductGeneratorPage() {
   const [isFixedInvestment, setIsFixedInvestment] = useState(false);
   const [minPrice, setMinPrice] = useState(10);
   const [maxPrice, setMaxPrice] = useState(100);
+  type ProductType = 'REKSADANA' | 'OBLIGASI' | 'SBN' | 'CRYPTO';
+  
   const [selectedProductTypes, setSelectedProductTypes] = useState({
     REKSADANA: true,
     OBLIGASI: true,
@@ -32,7 +34,7 @@ export default function ProductGeneratorPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCount, setGeneratedCount] = useState(0);
 
-  const handleProductTypeChange = (type) => {
+  const handleProductTypeChange = (type: ProductType) => {
     setSelectedProductTypes(prev => ({
       ...prev,
       [type]: !prev[type]
@@ -40,7 +42,9 @@ export default function ProductGeneratorPage() {
   };
 
   const getSelectedProductTypes = () => {
-    return Object.keys(selectedProductTypes).filter(type => selectedProductTypes[type]);
+    return Object.keys(selectedProductTypes).filter(type => 
+      selectedProductTypes[type as keyof typeof selectedProductTypes]
+    );
   };
 
   const handleGenerate = async () => {
@@ -122,9 +126,9 @@ export default function ProductGeneratorPage() {
               {Object.keys(selectedProductTypes).map(type => (
                 <Badge 
                   key={type}
-                  variant={selectedProductTypes[type] ? "default" : "outline"}
+                  variant={selectedProductTypes[type as keyof typeof selectedProductTypes] ? "default" : "outline"}
                   className="cursor-pointer"
-                  onClick={() => handleProductTypeChange(type)}
+                  onClick={() => handleProductTypeChange(type as ProductType)}
                 >
                   {type}
                 </Badge>

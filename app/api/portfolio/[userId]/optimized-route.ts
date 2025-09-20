@@ -89,15 +89,21 @@ export async function GET(
     if (totalValue > 0) {
       updatedHoldings.forEach(holding => {
         const percentage = (holding.currentValue / totalValue) * 100
-        switch (holding.product.category) {
-          case 'PASAR_UANG':
-            assetAllocation.moneyMarket += percentage
+        switch (holding.product.type) {
+          case 'REKSADANA':
+            // Further categorize based on riskLevel or specific type if needed
+            // For now, let's put all REKSADANA into 'mixed' or a new category if we add one
+            assetAllocation.mixed += percentage
             break
           case 'OBLIGASI':
             assetAllocation.bonds += percentage
             break
-          case 'SAHAM':
-            assetAllocation.stocks += percentage
+          case 'SBN':
+            assetAllocation.bonds += percentage // SBN are also bonds
+            break
+          case 'CRYPTO':
+            assetAllocation.stocks += percentage // Treat crypto like stocks for allocation
+            break
             break
           case 'CAMPURAN':
             assetAllocation.mixed += percentage
