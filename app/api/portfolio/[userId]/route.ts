@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = await params
+    const { userId } = params
 
     // Get or create portfolio
     let portfolio = await prisma.portfolio.findUnique({
@@ -124,7 +124,8 @@ export async function GET(
     return NextResponse.json(
       {
         error: 'Failed to fetch portfolio',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
       },
       { status: 500 }
     )
@@ -133,10 +134,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ userId: string }> }
+  { params }: { params: { userId: string } }
 ) {
   try {
-    const { userId } = await params
+    const { userId } = params
     const body = await request.json()
     const { riskProfile, rdnBalance, tradingBalance } = body
 

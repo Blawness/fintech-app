@@ -88,13 +88,6 @@ export default function SignInPage() {
               Daftar di sini
             </Link>
           </div>
-          <div className="mt-4 p-3 bg-blue-50 rounded-md">
-            <p className="text-sm text-blue-800">
-              <strong>Demo Account:</strong><br />
-              Email: test@example.com<br />
-              Password: password123
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

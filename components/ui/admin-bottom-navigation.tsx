@@ -32,9 +32,9 @@ export function AdminBottomNavigation({ className = '' }: AdminBottomNavigationP
       label: 'Market'
     },
     {
-      path: '/admin/analytics',
-      icon: '📊',
-      label: 'Analytics'
+      path: '/admin/tools',
+      icon: '🛠️',
+      label: 'Tools'
     }
   ]
 
