@@ -31,7 +31,6 @@ export default function EditProductPage() {
   const [formData, setFormData] = useState({
     name: '',
     type: 'REKSADANA',
-    category: 'PASAR_UANG',
     riskLevel: 'KONSERVATIF',
     expectedReturn: '',
     minInvestment: '',
@@ -49,7 +48,6 @@ export default function EditProductPage() {
         setFormData({
           name: productData.name,
           type: productData.type,
-          category: productData.category,
           riskLevel: productData.riskLevel,
           expectedReturn: productData.expectedReturn.toString(),
           minInvestment: productData.minInvestment.toString(),
@@ -181,22 +179,7 @@ export default function EditProductPage() {
                 </select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="category">Kategori *</Label>
-                <select
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="PASAR_UANG">Pasar Uang</option>
-                  <option value="OBLIGASI">Obligasi</option>
-                  <option value="CAMPURAN">Campuran</option>
-                  <option value="SAHAM">Saham</option>
-                </select>
-              </div>
+
 
               <div className="space-y-2">
                 <Label htmlFor="riskLevel">Tingkat Risiko *</Label>
