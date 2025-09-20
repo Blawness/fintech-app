@@ -3,9 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "prisma generate && prisma db push && next dev",
+    "dev": "prisma generate && prisma db push && node scripts/dev-with-port.js",
+    "dev:default": "prisma generate && prisma db push && next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "node scripts/start-with-port.js",
+    "start:default": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
