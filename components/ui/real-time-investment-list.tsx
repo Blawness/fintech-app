@@ -193,8 +193,8 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
                   <div className="flex-1">
                     <CardTitle className="text-lg mb-2">{product.name}</CardTitle>
                     <div className="flex flex-wrap gap-2 mb-2">
-                      <Badge className={getCategoryColor(product.category)}>
-                        {product.category.replace('_', ' ')}
+                      <Badge className={getCategoryColor(product.type)}>
+                        {product.type?.replace('_', ' ')}
                       </Badge>
                       <Badge className={getRiskColor(product.riskLevel)}>
                         <div className="flex items-center gap-1">
@@ -248,8 +248,8 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
                     <div className="flex justify-between text-sm">
                       <span className="text-blue-700">Keuntungan:</span>
                       <span className={`font-medium ${userHolding.gain >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {userHolding.gain >= 0 ? '+' : ''}Rp {userHolding.gain?.toLocaleString('id-ID') || '0'}
-                        ({userHolding.gainPercent >= 0 ? '+' : ''}{userHolding.gainPercent?.toFixed(2) || '0.00'}%)
+                        {userHolding.gain >= 0 ? '+' : ''}Rp {typeof userHolding.gain === 'number' ? userHolding.gain.toLocaleString('id-ID') : '0'}
+                        ({userHolding.gainPercent >= 0 ? '+' : ''}{typeof userHolding.gainPercent === 'number' ? userHolding.gainPercent.toFixed(2) : '0.00'}%)
                       </span>
                     </div>
                   </div>
