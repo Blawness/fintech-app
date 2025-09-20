@@ -8,8 +8,8 @@ import { MarketSimulatorInit } from '@/components/market-simulator-init'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Bibit - Investasi Mudah untuk Semua',
-  description: 'Platform investasi reksa dana dan obligasi dengan edukasi keuangan untuk masyarakat Indonesia',
+  title: 'FinEdu - Platform Edukasi Keuangan',
+  description: 'Platform edukasi keuangan dan investasi untuk masyarakat Indonesia dengan simulasi pasar real-time',
 }
 
 export default function RootLayout({

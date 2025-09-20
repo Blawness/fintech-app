@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-async function main() {
+async function cleanup() {
   console.log('🧹 Cleaning up existing data...')
   
   // Clean up existing data in reverse order of dependencies
@@ -20,37 +20,60 @@ async function main() {
   await prisma.systemSetting.deleteMany()
   
   console.log('✅ Cleanup completed')
-  console.log('🌱 Starting database seeding...')
+}
 
-  // Create sample user
+async function seedUsers() {
+  console.log('👥 Creating users...')
+  
+  // Create test user
   const hashedPassword = await bcrypt.hash('password123', 12)
   
-  const user = await prisma.user.upsert({
-    where: { email: 'test@example.com' },
-    update: {},
-    create: {
+  const user = await prisma.user.create({
+    data: {
       email: 'test@example.com',
       passwordHash: hashedPassword,
       name: 'Test User',
       riskProfile: 'KONSERVATIF',
-    },
+      isActive: true
+    }
   })
 
-  // Admin user will be created by seed-admin.ts script
+  // Create admin user
+  const adminHashedPassword = await bcrypt.hash('admin123', 12)
+  
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@fintech.com',
+      passwordHash: adminHashedPassword,
+      name: 'Admin Fintech',
+      role: 'ADMIN',
+      riskProfile: 'MODERAT',
+      isActive: true
+    }
+  })
 
-  // Create portfolio for user
-  await prisma.portfolio.upsert({
-    where: { userId: user.id },
-    update: {},
-    create: {
-      userId: user.id,
+  console.log('✅ Users created')
+  return { user, admin }
+}
+
+async function seedPortfolio(userId: string) {
+  console.log('💼 Creating portfolio...')
+  
+  await prisma.portfolio.create({
+    data: {
+      userId: userId,
       riskProfile: 'KONSERVATIF',
       rdnBalance: 1000000,
       tradingBalance: 0,
-    },
+    }
   })
 
-  // Create sample lessons
+  console.log('✅ Portfolio created')
+}
+
+async function seedLessons() {
+  console.log('📚 Creating lessons...')
+  
   const lessons = [
     {
       day: 1,
@@ -127,12 +150,12 @@ async function main() {
     }
   ]
 
+  const createdLessons = []
   for (const lessonData of lessons) {
-    const lesson = await prisma.lesson.upsert({
-      where: { day: lessonData.day },
-      update: {},
-      create: lessonData,
+    const lesson = await prisma.lesson.create({
+      data: lessonData
     })
+    createdLessons.push(lesson)
 
     // Create quiz for each lesson
     const quizData = {
@@ -159,14 +182,18 @@ async function main() {
       answer: lessonData.day === 1 ? 1 : lessonData.day === 2 ? 3 : 1
     }
 
-    await prisma.quiz.upsert({
-      where: { lessonId: lesson.id },
-      update: {},
-      create: quizData,
+    await prisma.quiz.create({
+      data: quizData
     })
   }
 
-  // Create sample investment products
+  console.log('✅ Lessons and quizzes created')
+  return createdLessons
+}
+
+async function seedInvestmentProducts() {
+  console.log('💹 Creating investment products...')
+  
   const products = [
     {
       name: 'Reksa Dana Pasar Uang Syariah',
@@ -231,14 +258,18 @@ async function main() {
   ]
 
   for (const product of products) {
-    await prisma.investmentProduct.upsert({
-      where: { name: product.name },
-      update: product,
-      create: product
+    await prisma.investmentProduct.create({
+      data: product
     })
   }
 
-  // Create system settings
+  console.log('✅ Investment products created')
+  return products.length
+}
+
+async function seedSystemSettings() {
+  console.log('⚙️ Creating system settings...')
+  
   const systemSettings = [
     {
       key: 'market_status',
@@ -263,31 +294,54 @@ async function main() {
   ]
 
   for (const setting of systemSettings) {
-    await prisma.systemSetting.upsert({
-      where: { key: setting.key },
-      update: { value: setting.value },
-      create: setting
+    await prisma.systemSetting.create({
+      data: setting
     })
   }
 
-  console.log('✅ Database seeded successfully!')
-  console.log('📊 Created:')
-  console.log(`  - 1 test user (test@example.com / password123)`)
-  console.log(`  - 1 portfolio`)
-  console.log(`  - ${lessons.length} lessons with quizzes`)
-  console.log(`  - ${products.length} investment products`)
-  console.log(`  - ${systemSettings.length} system settings`)
-  console.log('')
-  console.log('🔑 Test User Credentials:')
-  console.log('  Email: test@example.com')
-  console.log('  Password: password123')
-  console.log('')
-  console.log('⚠️  Run "npm run db:seed:admin" to create admin user')
+  console.log('✅ System settings created')
+  return systemSettings.length
+}
+
+async function main() {
+  try {
+    console.log('🚀 Starting complete database seeding...')
+    
+    await cleanup()
+    const { user, admin } = await seedUsers()
+    await seedPortfolio(user.id)
+    const lessons = await seedLessons()
+    const productCount = await seedInvestmentProducts()
+    const settingsCount = await seedSystemSettings()
+
+    console.log('')
+    console.log('🎉 Database seeding completed successfully!')
+    console.log('📊 Summary:')
+    console.log(`  - 2 users (1 test user, 1 admin)`)
+    console.log(`  - 1 portfolio`)
+    console.log(`  - ${lessons.length} lessons with quizzes`)
+    console.log(`  - ${productCount} investment products`)
+    console.log(`  - ${settingsCount} system settings`)
+    console.log('')
+    console.log('🔑 Test User Credentials:')
+    console.log('  Email: test@example.com')
+    console.log('  Password: password123')
+    console.log('')
+    console.log('🔑 Admin Credentials:')
+    console.log('  Email: admin@fintech.com')
+    console.log('  Password: admin123')
+    console.log('')
+    console.log('⚠️  Please change passwords after first login!')
+    
+  } catch (error) {
+    console.error('❌ Error during seeding:', error)
+    throw error
+  }
 }
 
 main()
   .catch((e) => {
-    console.error(e)
+    console.error('❌ Seeding failed:', e)
     process.exit(1)
   })
   .finally(async () => {

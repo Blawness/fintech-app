@@ -298,7 +298,7 @@ function Navigation() {
 ```bash
 # Login as admin
 curl -X POST http://localhost:3000/api/auth/signin \
-  -d '{"email": "admin@bibit.com", "password": "admin123"}'
+  -d '{"email": "admin@finedu.com", "password": "admin123"}'
 
 # Access admin API
 curl -H "Authorization: Bearer <token>" \

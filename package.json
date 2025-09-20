@@ -1,5 +1,5 @@
 {
-  "name": "fintech-learning-app",
+  "name": "finedu",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,6 +12,10 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:admin": "tsx prisma/seed-admin.ts",
+    "db:seed:investment": "tsx prisma/seed-investment.ts",
+    "db:seed:all": "npm run db:seed && npm run db:seed:admin",
+    "db:seed:complete": "tsx prisma/seed-complete.ts",
     "market:start": "node scripts/start-market-simulator.js",
     "market:test": "node scripts/test-market-simulator.js",
     "admin:test": "node scripts/test-admin-market.js",

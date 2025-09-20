@@ -5,7 +5,7 @@
 ### **Application Layers**
 ```
 ┌─────────────────┐
-│   Next.js App   │  ← Frontend (React) - Bibit-style UI + Admin Panel
+│   Next.js App   │  ← Frontend (React) - FinEdu-style UI + Admin Panel
 ├─────────────────┤
 │   API Routes    │  ← Backend (Node.js) - Investment APIs + Admin APIs
 ├─────────────────┤
@@ -209,7 +209,7 @@ Response ← JSON Serialization ← Data Processing ← Query Result
 
 #### **User Pages**
 - `app/page.tsx` - Redirect to dashboard
-- `app/dashboard/page.tsx` - Main dashboard (Bibit-style)
+- `app/dashboard/page.tsx` - Main dashboard (FinEdu-style)
 - `app/portfolio/page.tsx` - Portfolio overview & asset allocation
 - `app/explore/page.tsx` - Browse investment products & watchlist
 - `app/transactions/page.tsx` - Transaction history & order management

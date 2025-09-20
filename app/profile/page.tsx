@@ -195,7 +195,7 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between p-4 border-b">
                 <div className="flex items-center space-x-3">
                   <Moon className="w-5 h-5 text-gray-600" />
-                  <span>Bibit Syariah</span>
+                  <span>FinEdu Syariah</span>
                 </div>
                 <div className="w-12 h-6 bg-gray-300 rounded-full relative">
                   <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5"></div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <Building className="w-5 h-5 text-gray-600" />
-                    <span>Bibit untuk Perusahaan</span>
+                    <span>FinEdu untuk Perusahaan</span>
                   </div>
                   <ArrowRight className="w-4 h-4 text-gray-400" />
                 </div>

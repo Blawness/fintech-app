@@ -83,9 +83,9 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">B</span>
+                <span className="text-white font-bold text-sm">F</span>
               </div>
-              <h1 className="text-2xl font-bold text-green-600">bibit</h1>
+              <h1 className="text-2xl font-bold text-green-600">FinEdu</h1>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-xs text-gray-500">
@@ -248,11 +248,11 @@ export default function DashboardPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Mulai Investasi untuk Bisnis Kamu</h3>
                 <p className="text-sm text-gray-600 mb-4">
-                  Daftarkan perusahaan ke Bibit Bisnis untuk investasi semudah di Bibit pribadi kamu.
+                  Daftarkan perusahaan ke FinEdu Bisnis untuk investasi semudah di FinEdu pribadi kamu.
                 </p>
                 <Button 
                   className="bg-green-600 hover:bg-green-700"
-                  onClick={() => window.open('https://bibit.id', '_blank')}
+                  onClick={() => window.open('https://finedu.id', '_blank')}
                 >
                   Pelajari lebih lanjut
                   <ArrowUpRight className="w-4 h-4 ml-2" />
