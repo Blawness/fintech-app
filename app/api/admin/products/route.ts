@@ -53,9 +53,9 @@ export async function POST(request: NextRequest) {
         name,
         type,
         riskLevel,
-        expectedReturn,
-        minInvestment,
-        currentPrice,
+        expectedReturn: parseFloat(expectedReturn),
+        minInvestment: parseFloat(minInvestment),
+        currentPrice: parseFloat(currentPrice),
         description
       }
     })
