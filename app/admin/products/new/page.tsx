@@ -114,6 +114,7 @@ export default function NewProductPage() {
                   <option value="REKSADANA">Reksa Dana</option>
                   <option value="OBLIGASI">Obligasi</option>
                   <option value="SBN">Surat Berharga Negara</option>
+                  <option value="CRYPTO">Crypto</option>
                 </select>
               </div>
 
@@ -131,6 +132,7 @@ export default function NewProductPage() {
                   <option value="OBLIGASI">Obligasi</option>
                   <option value="CAMPURAN">Campuran</option>
                   <option value="SAHAM">Saham</option>
+                  <option value="CRYPTO">Crypto</option>
                 </select>
               </div>
 

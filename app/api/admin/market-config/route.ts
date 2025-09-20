@@ -15,6 +15,7 @@ type TypeVolatility = {
   OBLIGASI: number
   CAMPURAN: number
   SAHAM: number
+  CRYPTO: number
 }
 
 export type MarketConfig = {
@@ -38,7 +39,8 @@ const DEFAULT_CONFIG: MarketConfig = {
     PASAR_UANG: 0.3,
     OBLIGASI: 0.5,
     CAMPURAN: 0.8,
-    SAHAM: 1.2
+    SAHAM: 1.2,
+    CRYPTO: 2.0
   },
   marketTrendFactor: 0.85,
   randomFactor: 0.15,
@@ -210,7 +212,7 @@ function validateConfiguration(config: Partial<MarketConfig>): { valid: boolean;
 
   // Validate type volatility
   if (config.typeVolatility) {
-    const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM']
+    const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM', 'CRYPTO']
     const tv = config.typeVolatility as TypeVolatility
     for (const type of types) {
       const key = type as keyof TypeVolatility
@@ -289,7 +291,7 @@ function validateSpecificConfig(key: keyof MarketConfig, value: unknown): { vali
       if (typeof value !== 'object' || value === null) {
         return { valid: false, error: 'Type volatility must be an object' }
       }
-      const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM']
+      const types = ['PASAR_UANG', 'OBLIGASI', 'CAMPURAN', 'SAHAM', 'CRYPTO']
       for (const type of types) {
         const typed = value as TypeVolatility as Record<string, number>
         if (typed[type] === undefined || 

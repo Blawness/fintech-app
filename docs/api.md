@@ -72,8 +72,8 @@ Get all active investment products.
   {
     "id": "string",
     "name": "Reksa Dana Pasar Uang Syariah",
-    "type": "REKSADANA",
-    "category": "PASAR_UANG",
+    "type": "REKSADANA", // "REKSADANA", "OBLIGASI", "SBN", "CRYPTO"
+    "category": "PASAR_UANG", // "PASAR_UANG", "OBLIGASI", "CAMPURAN", "SAHAM", "CRYPTO"
     "riskLevel": "KONSERVATIF",
     "expectedReturn": 4.5,
     "minInvestment": 10000,

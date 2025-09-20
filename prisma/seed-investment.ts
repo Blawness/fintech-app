@@ -66,6 +66,46 @@ async function main() {
       minInvestment: 1000000,
       currentPrice: 1000000,
       description: 'Sukuk ritel dengan prinsip syariah, memberikan return yang kompetitif dengan tingkat risiko rendah.'
+    },
+    {
+      name: 'Bitcoin (BTC)',
+      type: 'CRYPTO',
+      category: 'CRYPTO',
+      riskLevel: 'AGRESIF',
+      expectedReturn: 25.0,
+      minInvestment: 100000,
+      currentPrice: 500000000,
+      description: 'Bitcoin adalah cryptocurrency pertama dan terbesar berdasarkan kapitalisasi pasar. Cocok untuk investor dengan profil risiko agresif yang siap menghadapi volatilitas tinggi.'
+    },
+    {
+      name: 'Ethereum (ETH)',
+      type: 'CRYPTO',
+      category: 'CRYPTO',
+      riskLevel: 'AGRESIF',
+      expectedReturn: 30.0,
+      minInvestment: 50000,
+      currentPrice: 30000000,
+      description: 'Ethereum adalah platform blockchain yang mendukung smart contracts dan aplikasi terdesentralisasi. Memiliki potensi pertumbuhan tinggi dengan risiko volatilitas.'
+    },
+    {
+      name: 'Binance Coin (BNB)',
+      type: 'CRYPTO',
+      category: 'CRYPTO',
+      riskLevel: 'AGRESIF',
+      expectedReturn: 20.0,
+      minInvestment: 25000,
+      currentPrice: 5000000,
+      description: 'Binance Coin adalah token utilitas dari ekosistem Binance. Digunakan untuk trading fee dan berbagai layanan dalam platform Binance.'
+    },
+    {
+      name: 'Cardano (ADA)',
+      type: 'CRYPTO',
+      category: 'CRYPTO',
+      riskLevel: 'MODERAT',
+      expectedReturn: 15.0,
+      minInvestment: 20000,
+      currentPrice: 15000,
+      description: 'Cardano adalah platform blockchain generasi ketiga yang fokus pada keamanan dan skalabilitas. Menggunakan pendekatan berbasis penelitian untuk pengembangan blockchain.'
     }
   ]
 

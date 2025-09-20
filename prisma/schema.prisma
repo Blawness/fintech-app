@@ -82,7 +82,7 @@ model UserProgress {
 model InvestmentProduct {
   id            String   @id @default(cuid())
   name          String   @unique
-  type          String   // "REKSADANA", "OBLIGASI", "SBN"
+  type          String   // "REKSADANA", "OBLIGASI", "SBN", "CRYPTO"
   category      String   // "PASAR_UANG", "OBLIGASI", "CAMPURAN", "SAHAM"
   riskLevel     String   // "KONSERVATIF", "MODERAT", "AGRESIF"
   expectedReturn Float
