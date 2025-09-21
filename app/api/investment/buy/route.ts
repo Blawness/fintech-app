@@ -2,11 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-
-// Utility function for consistent rounding
-const roundToDecimals = (value: number, decimals: number = 4): number => {
-  return Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals)
-}
+import { roundToDecimals, recalculatePortfolioTotals } from '@/lib/portfolio-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,12 +86,11 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Update portfolio balance
+      // Update portfolio balance (only RDN balance, totals will be recalculated)
       await tx.portfolio.update({
         where: { id: portfolio.id },
         data: {
-          rdnBalance: roundToDecimals(portfolio.rdnBalance - roundedAmount, 2),
-          totalValue: roundToDecimals(portfolio.totalValue + totalValue, 2)
+          rdnBalance: roundToDecimals(portfolio.rdnBalance - roundedAmount, 2)
         }
       })
 
@@ -144,6 +139,9 @@ export async function POST(request: NextRequest) {
 
       return transaction
     })
+
+    // Recalculate portfolio totals after the transaction
+    await recalculatePortfolioTotals(portfolio.id)
 
     return NextResponse.json({ 
       message: 'Investment successful',
