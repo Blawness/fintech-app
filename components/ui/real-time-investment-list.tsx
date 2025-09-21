@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { TrendingUp, Shield, AlertTriangle } from 'lucide-react'
 import { InvestmentModal } from '@/app/investment/investment-modal'
 
@@ -56,13 +57,15 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [initialLoad, setInitialLoad] = useState(true)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [sortKey, setSortKey] = useState<string>('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
+  const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>('')
 
   const fetchData = useCallback(async () => {
     try {
-      setIsUpdating(true)
-      
       // Fetch products and portfolio in parallel
       const [productsResponse, portfolioResponse] = await Promise.all([
         fetch('/api/products'),
@@ -79,12 +82,11 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
         setPortfolio(portfolioData)
       }
 
-      setLastUpdate(new Date())
     } catch (error) {
       console.error('Error fetching investment data:', error)
     } finally {
       setLoading(false)
-      setIsUpdating(false)
+      setInitialLoad(false)
     }
   }, [userId])
 
@@ -148,12 +150,69 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
     return portfolio.holdings.find(h => h.productId === productId)
   }
 
+  // Skeleton component for loading state
+  const SkeletonCard = () => (
+    <Card className="animate-pulse">
+      <CardHeader>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="h-6 bg-gray-200 rounded mb-2 w-3/4"></div>
+            <div className="flex gap-2 mb-2">
+              <div className="h-5 bg-gray-200 rounded w-16"></div>
+              <div className="h-5 bg-gray-200 rounded w-20"></div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="h-8 bg-gray-200 rounded w-16 mb-1"></div>
+            <div className="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3 mb-4">
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded w-24"></div>
+            <div className="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded w-28"></div>
+            <div className="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+          <div className="flex justify-between">
+            <div className="h-4 bg-gray-200 rounded w-16"></div>
+            <div className="h-4 bg-gray-200 rounded w-20"></div>
+          </div>
+        </div>
+        <div className="h-4 bg-gray-200 rounded mb-4"></div>
+        <div className="h-4 bg-gray-200 rounded mb-4"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+      </CardContent>
+    </Card>
+  )
+
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Memuat produk investasi...</p>
-      </div>
+      <>
+        {/* Header skeleton */}
+        <div className="mb-4 flex items-center justify-between">
+          <div className="h-7 bg-gray-200 rounded w-64 animate-pulse"></div>
+          <div className="flex items-center gap-2">
+            <div className="h-10 bg-gray-200 rounded w-64 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-32 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-10 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-40 animate-pulse"></div>
+            <div className="h-10 bg-gray-200 rounded w-40 animate-pulse"></div>
+            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+          </div>
+        </div>
+        
+        {/* Cards skeleton */}
+        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      </>
     )
   }
 
@@ -167,23 +226,85 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
     )
   }
 
+  const filteredProducts = products.filter(product =>
+    (product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.riskLevel.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    (selectedCategory === '' || product.category === selectedCategory) &&
+    (selectedRiskLevel === '' || product.riskLevel === selectedRiskLevel)
+  )
+  const sortedAndFilteredProducts = [...filteredProducts].sort((a, b) => {
+    let compareValue = 0
+    if (sortKey === 'name') {
+      compareValue = a.name.localeCompare(b.name)
+    } else if (sortKey === 'expectedReturn') {
+      compareValue = a.expectedReturn - b.expectedReturn
+    } else if (sortKey === 'riskLevel') {
+      // Custom sorting for risk levels (e.g., KONSERVATIF < MODERAT < AGRESIF)
+      const riskOrder = {'KONSERVATIF': 1, 'MODERAT': 2, 'AGRESIF': 3}
+      compareValue = (riskOrder[a.riskLevel as keyof typeof riskOrder] || 0) - (riskOrder[b.riskLevel as keyof typeof riskOrder] || 0)
+    } else if (sortKey === 'currentPrice') {
+      compareValue = a.currentPrice - b.currentPrice
+    }
+
+    return sortOrder === 'asc' ? compareValue : -compareValue
+  })
+
   return (
     <>
       {/* Update Status */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">Produk Investasi Tersedia</h2>
-        <div className="text-sm text-gray-500">
-          {lastUpdate && `Updated: ${lastUpdate.toLocaleTimeString()}`}
-          {isUpdating && (
-            <span className="ml-2 text-blue-600">
-              <span className="animate-spin">⟳</span> Updating...
-            </span>
-          )}
+        <div className="flex items-center gap-2">
+          <Input
+            type="text"
+            placeholder="Cari produk investasi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value)}
+            className="p-2 border rounded-md"
+          >
+            <option value="name">Nama</option>
+            <option value="expectedReturn">Expected Return</option>
+            <option value="riskLevel">Risk Level</option>
+            <option value="currentPrice">Harga Saat Ini</option>
+          </select>
+          <button
+            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+            className="p-2 border rounded-md"
+          >
+            {sortOrder === 'asc' ? '↑' : '↓'}
+          </button>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="p-2 border rounded-md"
+          >
+            <option value="">Semua Kategori</option>
+            {Array.from(new Set(products.map(p => p.category).filter(Boolean))).map(category => (
+              <option key={category} value={category}>{category?.replace('_', ' ') || category}</option>
+            ))}
+          </select>
+          <select
+            value={selectedRiskLevel}
+            onChange={(e) => setSelectedRiskLevel(e.target.value)}
+            className="p-2 border rounded-md"
+          >
+            <option value="">Semua Tingkat Risiko</option>
+            {Array.from(new Set(products.map(p => p.riskLevel).filter(Boolean))).map(riskLevel => (
+              <option key={riskLevel} value={riskLevel}>{riskLevel}</option>
+            ))}
+          </select>
         </div>
       </div>
 
       <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ${className}`}>
-        {products.map((product) => {
+        {sortedAndFilteredProducts.map((product) => {
           const userHolding = getUserHolding(product.id)
           
           return (
@@ -194,7 +315,7 @@ export function RealTimeInvestmentList({ userId, className = '' }: RealTimeInves
                     <CardTitle className="text-lg mb-2">{product.name}</CardTitle>
                     <div className="flex flex-wrap gap-2 mb-2">
                       <Badge className={getCategoryColor(product.type)}>
-                        {product.type?.replace('_', ' ')}
+                        {product.type?.replace('_', ' ') || product.type || 'Unknown'}
                       </Badge>
                       <Badge className={getRiskColor(product.riskLevel)}>
                         <div className="flex items-center gap-1">

@@ -158,7 +158,7 @@ export function RealTimePortfolioHoldings({ userId, className = '' }: RealTimePo
                       <h3 className="font-medium text-gray-900 mb-1">{holding.product.name}</h3>
                       <div className="flex flex-wrap gap-2 mb-2">
                         <Badge className={getCategoryColor(holding.product.category)}>
-                          {holding.product.category.replace('_', ' ')}
+                          {holding.product.category?.replace('_', ' ')}
                         </Badge>
                         <Badge className={getRiskColor(holding.product.riskLevel)}>
                           {holding.product.riskLevel}
