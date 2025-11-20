@@ -24,6 +24,111 @@ interface Lesson {
   quiz: Quiz
 }
 
+interface ReferenceLink {
+  url: string
+  title: string
+}
+
+const getQuizReferences = (day: number): ReferenceLink[] => {
+  switch (day) {
+    case 1: // Dana Darurat
+      return [
+        {
+          url: 'https://www.shariaknowledgecentre.id/id/news/dana-darurat-keuangan-syariah-halal-hadapi-krisis/',
+          title: 'Dana Darurat Keuangan Syariah Halal Hadapi Krisis - Sharia Knowledge Centre'
+        },
+        {
+          url: 'https://www.youtube.com/watch?v=EXP2Hd11FBY',
+          title: 'Video: Dana Darurat - YouTube'
+        },
+        {
+          url: 'https://www.megasyariah.co.id/id/artikel/edukasi-tips/simpanan/dana-darurat',
+          title: 'Dana Darurat - Mega Syariah'
+        },
+        {
+          url: 'https://bmt.hsi.id/artikel/25-cara-cerdas-membangun-dana-darurat',
+          title: '25 Cara Cerdas Membangun Dana Darurat - BMT HSI'
+        }
+      ]
+    case 2: // Investasi untuk Pemula
+      return [
+        {
+          url: 'https://www.youtube.com/watch?v=G8CmgjVz6zM',
+          title: 'Video: Investasi untuk Pemula - YouTube'
+        },
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    case 3: // Mengelola Utang
+      return [
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    case 4: // Fintech Syariah
+      return [
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        },
+        {
+          url: 'https://www.shariaknowledgecentre.id/id/news/dana-darurat-keuangan-syariah-halal-hadapi-krisis/',
+          title: 'Dana Darurat Keuangan Syariah - Sharia Knowledge Centre'
+        }
+      ]
+    case 5: // Perencanaan Keuangan
+      return [
+        {
+          url: 'https://www.megasyariah.co.id/id/artikel/edukasi-tips/simpanan/dana-darurat',
+          title: 'Dana Darurat - Mega Syariah'
+        },
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    case 6: // Manajemen Risiko
+      return [
+        {
+          url: 'https://www.youtube.com/watch?v=G8CmgjVz6zM',
+          title: 'Video: Manajemen Risiko Investasi - YouTube'
+        },
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    case 7: // Pajak dan Investasi
+      return [
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    case 8: // Perencanaan Pensiun
+      return [
+        {
+          url: 'https://bmt.hsi.id/artikel/25-cara-cerdas-membangun-dana-darurat',
+          title: '25 Cara Cerdas Membangun Dana Darurat - BMT HSI'
+        },
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+    default:
+      return [
+        {
+          url: 'https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah',
+          title: 'Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga'
+        }
+      ]
+  }
+}
+
 export default function LessonPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
@@ -162,19 +267,26 @@ export default function LessonPage() {
                 {lesson.quiz.question}
               </div>
               
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                <p className="text-sm text-gray-700 mb-2">
-                  <strong>Referensi:</strong> Pelajari lebih lanjut tentang fintech syariah
-                </p>
-                <a 
-                  href="https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 underline"
-                >
-                  Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga
-                </a>
-              </div>
+              {getQuizReferences(lesson.day).length > 0 && (
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>Referensi:</strong> Pelajari lebih lanjut tentang topik ini
+                  </p>
+                  <div className="space-y-1">
+                    {getQuizReferences(lesson.day).map((ref, index) => (
+                      <a 
+                        key={index}
+                        href={ref.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-blue-600 hover:text-blue-800 underline"
+                      >
+                        {ref.title}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <RadioGroup
                 value={selectedAnswer?.toString()}

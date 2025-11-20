@@ -124,6 +124,160 @@ async function main() {
 2. Bedakan kebutuhan vs keinginan
 3. Bawa uang tunai saat belanja
 4. Hindari kartu kredit jika tidak disiplin`
+    },
+    {
+      day: 4,
+      title: 'Memahami Fintech Syariah',
+      content: `Fintech syariah adalah teknologi keuangan yang beroperasi sesuai dengan prinsip-prinsip syariah Islam.
+
+**Prinsip Fintech Syariah:**
+- Menghindari riba (bunga)
+- Menghindari gharar (ketidakpastian berlebihan)
+- Menghindari maysir (judi/spekulasi)
+- Menggunakan akad yang sesuai syariah (murabahah, ijarah, musyarakah, mudharabah)
+
+**Jenis Fintech Syariah:**
+1. **Crowdfunding Syariah** - Penggalangan dana untuk proyek yang sesuai syariah
+2. **Pembayaran Digital Syariah** - Aplikasi pembayaran non-tunai sesuai prinsip syariah
+3. **Lending P2P Syariah** - Platform pinjaman peer-to-peer berbasis syariah
+4. **E-Wallet Syariah** - Dompet digital dengan prinsip syariah
+
+**Keuntungan Fintech Syariah:**
+- Transparansi dalam transaksi
+- Berbagi risiko antara pihak
+- Investasi pada sektor halal
+- Akses keuangan yang lebih luas
+
+**Contoh Produk Fintech Syariah:**
+- Pembiayaan dengan akad murabahah (jual beli)
+- Investasi reksa dana syariah
+- Tabungan syariah dengan bagi hasil`
+    },
+    {
+      day: 5,
+      title: 'Perencanaan Keuangan Pribadi',
+      content: `Perencanaan keuangan adalah proses mengelola keuangan untuk mencapai tujuan hidup.
+
+**Langkah-langkah Perencanaan Keuangan:**
+1. **Tentukan Tujuan** - Tujuan jangka pendek, menengah, dan panjang
+2. **Hitung Aset dan Liabilitas** - Net worth = Aset - Utang
+3. **Buat Anggaran** - Alokasi pendapatan untuk kebutuhan, tabungan, investasi
+4. **Buat Dana Darurat** - Minimal 3-6 bulan pengeluaran
+5. **Mulai Investasi** - Sesuaikan dengan profil risiko
+6. **Review Berkala** - Evaluasi dan sesuaikan rencana
+
+**Rumus 50-30-20:**
+- 50% untuk kebutuhan pokok
+- 30% untuk keinginan
+- 20% untuk tabungan dan investasi
+
+**Tujuan Keuangan Umum:**
+- Dana darurat
+- Pendidikan anak
+- Rumah impian
+- Pensiun yang nyaman
+- Perjalanan ibadah
+
+**Tips Sukses Perencanaan Keuangan:**
+1. Mulai sedini mungkin
+2. Disiplin dengan anggaran
+3. Otomatisasi tabungan dan investasi
+4. Hindari utang konsumtif
+5. Review dan sesuaikan secara berkala`
+    },
+    {
+      day: 6,
+      title: 'Manajemen Risiko dalam Investasi',
+      content: `Setiap investasi memiliki risiko. Memahami dan mengelola risiko adalah kunci sukses investasi.
+
+**Jenis Risiko Investasi:**
+1. **Risiko Pasar** - Fluktuasi harga karena kondisi pasar
+2. **Risiko Kredit** - Emiten gagal bayar
+3. **Risiko Likuiditas** - Sulit dijual saat dibutuhkan
+4. **Risiko Inflasi** - Nilai investasi tergerus inflasi
+5. **Risiko Valuta Asing** - Untuk investasi valas
+
+**Profil Risiko:**
+- **Konservatif** - Toleransi risiko rendah, fokus pada stabilitas
+- **Moderat** - Keseimbangan antara risiko dan return
+- **Agresif** - Toleransi risiko tinggi, mencari return maksimal
+
+**Strategi Mengelola Risiko:**
+1. **Diversifikasi** - Jangan taruh semua telur dalam satu keranjang
+2. **Asset Allocation** - Alokasi dana ke berbagai jenis aset
+3. **Dollar Cost Averaging** - Investasi rutin dengan jumlah tetap
+4. **Time Horizon** - Sesuaikan dengan jangka waktu investasi
+5. **Stop Loss** - Batas kerugian yang bisa diterima
+
+**Prinsip Investasi:**
+- Higher risk, higher return
+- Diversifikasi mengurangi risiko
+- Investasi jangka panjang lebih stabil
+- Jangan investasi uang yang dibutuhkan dalam waktu dekat`
+    },
+    {
+      day: 7,
+      title: 'Pajak dan Investasi',
+      content: `Memahami perpajakan investasi membantu Anda mengoptimalkan return dan menghindari masalah hukum.
+
+**Jenis Pajak Investasi:**
+1. **Pajak Penghasilan (PPh)** - Atas bunga, dividen, capital gain
+2. **Pajak Final** - Pajak yang sudah final, tidak bisa dikreditkan
+3. **Pajak Tidak Final** - Bisa dikreditkan dengan pajak lainnya
+
+**Pajak per Instrumen Investasi:**
+- **Deposito** - Pajak final 20% (jika > Rp7.5 juta/tahun)
+- **Obligasi** - Pajak final 15% untuk WNI
+- **Saham** - Pajak final 0.1% dari nilai transaksi
+- **Reksa Dana** - Pajak final 0.1% dari nilai transaksi
+- **Sukuk** - Pajak final 15% untuk WNI
+
+**NPWP untuk Investasi:**
+- Wajib memiliki NPWP untuk investasi
+- Tanpa NPWP, tarif pajak lebih tinggi (20% vs tarif normal)
+- NPWP memudahkan pelaporan pajak
+
+**Tips Optimasi Pajak:**
+1. Manfaatkan investasi dengan pajak final rendah
+2. Gunakan investasi jangka panjang (capital gain jangka panjang lebih menguntungkan)
+3. Manfaatkan investasi syariah (beberapa memiliki insentif pajak)
+4. Konsultasi dengan konsultan pajak untuk perencanaan optimal
+5. Simpan dokumen investasi untuk pelaporan pajak`
+    },
+    {
+      day: 8,
+      title: 'Perencanaan Pensiun yang Sehat',
+      content: `Pensiun yang nyaman membutuhkan perencanaan sejak dini. Mulai sekarang, jangan tunggu sampai terlambat.
+
+**Mengapa Perencanaan Pensiun Penting?**
+- Harapan hidup meningkat, masa pensiun lebih panjang
+- Inflasi mengurangi nilai uang
+- Tidak bisa bergantung hanya pada pensiun dari perusahaan
+- Biaya kesehatan meningkat seiring usia
+
+**Berapa Kebutuhan Dana Pensiun?**
+- Minimal 70-80% dari pengeluaran saat masih bekerja
+- Hitung berdasarkan gaya hidup yang diinginkan
+- Pertimbangkan inflasi tahunan (sekitar 3-5%)
+- Faktor harapan hidup (rata-rata 75-80 tahun)
+
+**Sumber Dana Pensiun:**
+1. **BPJS Ketenagakerjaan** - Jaminan pensiun dari pemerintah
+2. **Dana Pensiun Perusahaan** - Jika tersedia
+3. **Investasi Pribadi** - Tabungan, reksa dana, saham, properti
+4. **Asuransi Jiwa** - Perlindungan dan investasi
+
+**Strategi Menabung untuk Pensiun:**
+1. **Mulai Sedini Mungkin** - Time value of money bekerja untuk Anda
+2. **Investasi Konsisten** - Rutin setiap bulan
+3. **Diversifikasi** - Kombinasi berbagai instrumen investasi
+4. **Review Berkala** - Sesuaikan dengan perubahan kebutuhan
+5. **Tingkatkan Kontribusi** - Saat pendapatan meningkat
+
+**Rumus Sederhana:**
+- Mulai investasi 10-15% dari gaji untuk pensiun
+- Targetkan dana pensiun 25x pengeluaran tahunan
+- Investasi dengan return di atas inflasi`
     }
   ]
 
@@ -135,28 +289,111 @@ async function main() {
     })
 
     // Create quiz for each lesson
+    const getQuizData = (day: number) => {
+      switch (day) {
+        case 1:
+          return {
+            question: 'Apa itu dana darurat?',
+            options: [
+              'Uang untuk liburan',
+              'Uang yang disisihkan untuk situasi darurat',
+              'Uang untuk investasi',
+              'Uang untuk belanja'
+            ],
+            answer: 1
+          }
+        case 2:
+          return {
+            question: 'Mana yang BUKAN jenis investasi untuk pemula?',
+            options: [
+              'Deposito',
+              'Reksa Dana',
+              'Obligasi',
+              'Kartu Kredit'
+            ],
+            answer: 3
+          }
+        case 3:
+          return {
+            question: 'Berapa maksimal Debt-to-Income Ratio yang disarankan?',
+            options: [
+              '20%',
+              '30%',
+              '40%',
+              '50%'
+            ],
+            answer: 1
+          }
+        case 4:
+          return {
+            question: 'Apa yang dimaksud dengan akad murabahah dalam fintech syariah?',
+            options: [
+              'Akad sewa menyewa',
+              'Akad jual beli dengan margin keuntungan',
+              'Akad bagi hasil',
+              'Akad pinjaman dengan bunga'
+            ],
+            answer: 1
+          }
+        case 5:
+          return {
+            question: 'Menurut rumus 50-30-20, berapa persen pendapatan yang sebaiknya dialokasikan untuk tabungan dan investasi?',
+            options: [
+              '10%',
+              '15%',
+              '20%',
+              '30%'
+            ],
+            answer: 2
+          }
+        case 6:
+          return {
+            question: 'Apa strategi terbaik untuk mengurangi risiko investasi?',
+            options: [
+              'Investasi pada satu instrumen saja',
+              'Diversifikasi ke berbagai jenis aset',
+              'Investasi semua dana pada saham',
+              'Menghindari investasi sama sekali'
+            ],
+            answer: 1
+          }
+        case 7:
+          return {
+            question: 'Berapa tarif pajak final untuk investasi obligasi bagi WNI?',
+            options: [
+              '10%',
+              '15%',
+              '20%',
+              '25%'
+            ],
+            answer: 1
+          }
+        case 8:
+          return {
+            question: 'Berapa persen dari gaji yang sebaiknya diinvestasikan untuk persiapan pensiun?',
+            options: [
+              '5-10%',
+              '10-15%',
+              '15-20%',
+              '20-25%'
+            ],
+            answer: 1
+          }
+        default:
+          return {
+            question: 'Pertanyaan default',
+            options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+            answer: 0
+          }
+      }
+    }
+
+    const quizInfo = getQuizData(lessonData.day)
     const quizData = {
       lessonId: lesson.id,
-      question: lessonData.day === 1 ? 'Apa itu dana darurat?' :
-                lessonData.day === 2 ? 'Mana yang BUKAN jenis investasi untuk pemula?' :
-                'Berapa maksimal Debt-to-Income Ratio yang disarankan?',
-      options: lessonData.day === 1 ? [
-        'Uang untuk liburan',
-        'Uang yang disisihkan untuk situasi darurat',
-        'Uang untuk investasi',
-        'Uang untuk belanja'
-      ] : lessonData.day === 2 ? [
-        'Deposito',
-        'Reksa Dana',
-        'Obligasi',
-        'Kartu Kredit'
-      ] : [
-        '20%',
-        '30%',
-        '40%',
-        '50%'
-      ],
-      answer: lessonData.day === 1 ? 1 : lessonData.day === 2 ? 3 : 1
+      question: quizInfo.question,
+      options: quizInfo.options,
+      answer: quizInfo.answer
     }
 
     await prisma.quiz.upsert({
