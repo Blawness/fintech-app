@@ -162,6 +162,20 @@ export default function LessonPage() {
                 {lesson.quiz.question}
               </div>
               
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <p className="text-sm text-gray-700 mb-2">
+                  <strong>Referensi:</strong> Pelajari lebih lanjut tentang fintech syariah
+                </p>
+                <a 
+                  href="https://www.cimbniaga.co.id/id/inspirasi/perencanaan/memahami-lebih-dalam-apa-itu-fintech-syariah"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-600 hover:text-blue-800 underline"
+                >
+                  Memahami Lebih Dalam Apa Itu Fintech Syariah - CIMB Niaga
+                </a>
+              </div>
+              
               <RadioGroup
                 value={selectedAnswer?.toString()}
                 onValueChange={(value) => setSelectedAnswer(parseInt(value))}
